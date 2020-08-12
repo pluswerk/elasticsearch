@@ -1,0 +1,19 @@
+{
+  "name": "pluswerk/elasticsearch",
+  "type": "typo3-cms-extension",
+  "description": "Pluswerk: Elasticsearch adapter for TYPO3",
+  "homepage": "https://www.pluswerk.ag",
+  "license": "GPL-2.0-or-later",
+  "support": {
+    "source": "https://www.pluswerk.ag"
+  },
+  "autoload": {
+    "psr-4": {
+      "Pluswerk\\Elasticsearch\\": "Classes/"
+    }
+  },
+  "require": {
+    "typo3/cms-core": ">=9.5",
+    "elasticsearch/elasticsearch": "^7.8"
+  }
+}

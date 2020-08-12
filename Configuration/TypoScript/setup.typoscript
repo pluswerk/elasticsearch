@@ -1,0 +1,7 @@
+plugin.tx_elasticsearch {
+  view {
+    templateRootPaths.0 = EXT:elasticsearch/Resources/Private/Templates/
+    partialRootPaths.0 = EXT:elasticsearch/Resources/Private/Partials/
+    layoutRootPaths.0 = EXT:elasticsearch/Resources/Private/Layouts/
+  }
+}
