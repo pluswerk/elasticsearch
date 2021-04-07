@@ -6,7 +6,6 @@ namespace Pluswerk\Elasticsearch\Indexer;
 
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Routing\CommandUriBuilder;
-use Pluswerk\Elasticsearch\Service\FrontendSimulationService;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -14,39 +13,35 @@ use TYPO3\CMS\Extbase\Object\ObjectManager;
 
 abstract class AbstractElasticIndexer implements ElasticIndexable
 {
-    /**
-     * @var ElasticConfig
-     */
-    protected $config;
+    protected ElasticConfig $config;
+    protected string $tableName;
+    protected string $index;
+    protected ObjectManager $objectManager;
+    protected OutputInterface $output;
 
-    /**
-     * @var string
-     */
-    protected $tableName = '';
-
-    /**
-     * @var ObjectManager
-     */
-    protected $objectManager;
-
-    /**
-     * @var FrontendSimulationService
-     */
-    protected $frontendSimulationService;
-
-    /**
-     * @var OutputInterface
-     */
-    protected $output;
-
-    public function __construct(ElasticConfig $config, string $tableName, OutputInterface $output)
+    public function __construct(ElasticConfig $config, string $tableName, string $index, OutputInterface $output)
     {
         $this->output = $output;
         $this->config = $config;
         $this->tableName = $tableName;
+        $this->index = $index;
         $this->objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        $this->frontendSimulationService = $this->objectManager->get(FrontendSimulationService::class);
-        $this->frontendSimulationService->initTSFE($this->config->getSite()->getRootPageId());
+    }
+
+    protected function getIndexBody(string $id): array
+    {
+        return [
+            'index' => [
+                '_index' => $this->index,
+                '_id' => $id,
+            ],
+        ];
+    }
+    protected function extractId(array &$result): string
+    {
+        $id = $this->tableName . ':' . $result['uid'];
+        unset($result['uid']);
+        return $id;
     }
 
     protected function findAllTableEntries()
@@ -62,11 +57,19 @@ abstract class AbstractElasticIndexer implements ElasticIndexable
     protected function getDocumentBody(array $result): array
     {
         $body = [];
-        $fieldMapping = $this->config->getFieldMappingForTable($this->tableName);
+        $fieldMapping = $this->config->getFieldMappingForTable($this->index, $this->tableName);
 
         foreach ($fieldMapping as $elasticField => $typoField) {
             $body[$elasticField] = $result[$typoField] ?? '';
         }
+        if (isset($body['uid'])) {
+            unset($body['uid']);
+        }
+        $type = $this->tableName;
+        if (isset($body['type'])) {
+            $type .= '/' . $body['type'];
+        }
+        $body['type'] = $type;
 
         return $body;
     }

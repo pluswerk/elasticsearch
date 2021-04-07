@@ -59,10 +59,20 @@ base: 'https://www.foo.com/'
 
 # Elasticsearch configuration
 elasticsearch:
-  index: typo3
   server:
     host: elastic.foo.com
     port: 9200
+  indices:
+    # define a default
+    german: &default
+      index: german
+    # copy the default to english
+    english:
+      << : *default
+      index: english
+    # create something new
+    products:
+      index: products
 ```
 
 ### Elasticsearch fields
@@ -106,15 +116,18 @@ elasticsearch:
 You can specify and use your own analyzers as well. Here is an example of an analyzer with stripped html-chars and a lowercase filter:
 ```yaml
 elasticsearch:
-  # see https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-custom-analyzer.html
-  analyzers:
-    html_analyzer:
-      type: custom
-      tokenizer: standard
-      char_filter:
-        - html_strip
-      filter:
-        - lowercase
+  indices:
+    german:
+      
+      # see https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-custom-analyzer.html
+      analyzers:
+        html_analyzer:
+          type: custom
+          tokenizer: standard
+          char_filter:
+            - html_strip
+          filter:
+            - lowercase
 ``` 
 
 ## Indexing pages
@@ -124,15 +137,18 @@ All indices inside of "tables" are table names of your TYPO3 project (pages, tt_
 
 ```yaml
 elasticsearch:
-  usePageMiddleware: true
-  tables:
-    pages:
-      mapping:
-        # content and url are predefined variables in php
-        # elasticValue: typo3Value
-        content: content
-        url: url
-        title: title
+  indices:
+    german:
+      usePageMiddleware: true
+      tables:
+        pages:
+          mapping:
+            
+            # content and url are predefined variables in php
+            # elasticValue: typo3Value
+            content: content
+            url: url
+            title: title
 ```
 
 Pages are getting indexed on uncached page-load via middleware. This means after changing a page the changes are synchronized immediately to elasticsearch.
@@ -162,24 +178,29 @@ It is possible to simply index all tables you have inside of your database. Take
 
 ```yaml
 elasticsearch:
-  tables:
-    tx_myextension_domain_model_table:
-      indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
-      uriBuilderConfig:
-        extensionName: MyExtension
-        pluginName: Extension
-        controllerName: Extension
-        actionName: detail
-        # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
-        argumentName: table
-        # detail page uid
-        pageUid: 123
-      mapping:
-        content: text
-        teaser: teaser
-        title: title
-        # you need to provide "url" in order to automatically generate urls
-        url: placeholder
+  indices:
+    german:
+      tables:
+        tx_myextension_domain_model_table:
+          indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
+          uriBuilderConfig:
+            extensionName: MyExtension
+            pluginName: Extension
+            controllerName: Extension
+            actionName: detail
+            
+            # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
+            argumentName: table
+            
+            # detail page uid
+            pageUid: 123
+          mapping:
+            content: text
+            teaser: teaser
+            title: title
+            
+            # you need to provide "url" in order to automatically generate urls
+            url: placeholder
 
 ```
 
@@ -194,81 +215,103 @@ You can also add urls to your entries. The field "url" is predestined and should
 
 ```yaml
 elasticsearch:
-  index: typo3
   server:
-    host: elastic
-  searchFields:
-    - escaped_content
-    - title
-  analyzers:
-    html_analyzer:
-      type: custom
-      tokenizer: standard
-      char_filter:
-        - html_strip
-      filter:
-        - lowercase
-
-  # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+    - '%env(HOST_ELASTIC)%'
+  # mapping schema for all indices
   mapping:
     -
       name: title
-
-      # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
       parameters:
         type: keyword
+        index: true
         store: true
     -
-      name: teaser
+      name: type
+      parameters:
+        type: keyword
+        index: true
+        store: true
+    -
+      name: contentExact
       parameters:
         type: text
-        index: false
         store: true
+        index: false
+        copy_to: content
     -
       name: content
       parameters:
         type: text
         store: true
-        copy_to: escaped_content
-    -
-      name: escaped_content
-      parameters:
-        type: text
-        store: true
+        index: true
         analyzer: html_analyzer
     -
       name: url
       parameters:
-        type: text
+        type: keyword
+        index: false
         store: true
-    -
-      name: image
-      parameters:
-        type: text
-        store: true
-  tables:
-    pages:
-      mapping:
-        # content and url are predefined variables in php if you use the middleware processing
-        content: content
-        url: url
-        title: title
-    tx_myextension_domain_model_table:
-      indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
-      uriBuilderConfig:
-        extensionName: MyExtension
-        pluginName: Extension
-        controllerName: Extension
-        actionName: detail
-        # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
-        argumentName: table
-        # detail page uid
-        pageUid: 123
-      mapping:
-        content: text
-        teaser: teaser
-        title: title
-        url: url
+
+  indices:
+    german: &default
+      index: german
+      searchFields:
+        - content
+        - title
+      analyzers:
+        html_analyzer:
+          type: custom
+          tokenizer: standard
+          char_filter:
+            - html_strip
+          filter:
+            - lowercase
+      usePageMiddleware: true
+      tables:
+        pages:
+          mapping:
+            # content and url are predefined variables in php
+            # elasticValue: typo3Value
+            content: content
+            url: url
+            title: title
+        rss-feed-news:
+          indexClass: Pluswerk\Elasticsearch\Indexer\RssFeedIndexer
+          config:
+            uri: <RSS FEED URI>
+          mapping:
+            title: title
+            publicationDate: pubDate
+            url: link
+            contentExact: description
+            type: type
+            uid: uid
+    english:
+      << : *default
+      index: english
+      tables:
+        pages:
+          mapping:
+            content: content
+            url: url
+            title: title
+        tx_myextension_domain_model_table:
+          indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
+          uriBuilderConfig:
+            extensionName: MyExtension
+            pluginName: Extension
+            controllerName: Extension
+            actionName: detail
+            # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
+            argumentName: table
+            # detail page uid
+            pageUid: 123
+          mapping:
+            content: text
+            teaser: teaser
+            title: title
+            url: url
+
 ```
 
 ### Example of embedding an ajax search endpoint
@@ -297,3 +340,15 @@ elasticSearch {
   }
 }
 ```
+
+# UID and Type
+The fields are used internally and will transform to
+
+ - uid = tablename + uid 
+   - is removed after used as _id (concatenated tablename+uid).
+ - type = tablename + type
+   - if empty type = tablename 
+
+# Language
+
+TODO

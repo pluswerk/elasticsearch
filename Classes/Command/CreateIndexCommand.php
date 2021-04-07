@@ -7,6 +7,7 @@ namespace Pluswerk\Elasticsearch\Command;
 use Elasticsearch\ClientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
+use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,14 +20,20 @@ class CreateIndexCommand extends Command
     /**
      * @var OutputInterface
      */
-    private $output;
+    protected $output;
 
     public function configure(): void
     {
         $this->setDescription('Deletes old index and creates a new one.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    /**
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @return int
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
@@ -34,45 +41,53 @@ class CreateIndexCommand extends Command
         foreach ($siteFinder->getAllSites(false) as $site) {
             if (isset($site->getConfiguration()['elasticsearch'])) {
                 $this->createIndexForSite($site);
+            } else {
+                $output->writeln('Site ' . $site->getIdentifier() . ' has no elasticsearch configuration');
             }
         }
+
+        return 0;
     }
 
-    private function createIndexForSite(Site $site): void
+    /**
+     * @param \TYPO3\CMS\Core\Site\Entity\Site $site
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
+    protected function createIndexForSite(Site $site): void
     {
         $this->output->writeln(sprintf('<comment>Creating new elasticsearch index for %s</comment>', $site->getIdentifier()));
         $config = GeneralUtility::makeInstance(ElasticConfig::class, $site);
-
-        $this->output->writeln('<comment>Deleting old index..</comment>');
-
-        try {
-            $config->getClient()->indices()->delete(['index' => $config->getIndexName()]);
-        } catch (Missing404Exception $e) {
-            $this->output->writeln(sprintf('<comment>No index "%s" exists yet, creating new now..</comment>', $config->getIndexName()));
+        $client = $config->getClient();
+        if (null === $client) {
+            throw new ClientNotAvailableException('Could not create client');
         }
 
-        $params = [
-            'index' => $config->getIndexName(),
-            'body' => [
-                'settings' => [
-                    'number_of_shards' => 1,
-                    'number_of_replicas' => 1,
-                    'analysis' => [
-                        'analyzer' => $config->getAnalyzers(),
+        $this->output->writeln('<comment>Deleting old index..</comment>');
+        $indices = $config->getIndexNames();
+        foreach ($indices as $index) {
+            try {
+                $client->indices()->delete(['index' => $index]);
+            } catch (Missing404Exception $e) {
+                $this->output->writeln(sprintf('<comment>No index "%s" exists yet, creating new now..</comment>', $index));
+            }
+            $params = [
+                'index' => $index,
+                'body' => [
+                    'settings' => [
+                        'number_of_shards' => 1,
+                        'number_of_replicas' => 1,
+                        'analysis' => [
+                            'analyzer' => $config->getAnalyzers($index),
+                        ],
+                    ],
+                    'mappings' => [
+                        'properties' => $config->getFieldMapping(),
                     ],
                 ],
-                'mappings' => [
-                    'properties' => $config->getFieldMapping(),
-                ],
-            ],
-        ];
+            ];
 
-        $config->getClient()->indices()->create($params);
-        $this->output->writeln(sprintf('<info>A new index "%s" has been created for %s.</info>', $config->getIndexName(), $site->getIdentifier()));
-    }
-
-    private function debug($var, int $depth = 4): void
-    {
-        \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($var, '$var (' . __FILE__ . ':' . __LINE__ . ')', $depth, true);
+            $client->indices()->create($params);
+            $this->output->writeln(sprintf('<info>A new index "%s" has been created for %s.</info>', $index, $site->getIdentifier()));
+        }
     }
 }

@@ -31,7 +31,7 @@ class GenericTableIndexer extends AbstractElasticIndexer
             $documentBody = $this->getDocumentBody($result);
 
             if (isset($documentBody['url']) && empty($documentBody['url'])) {
-                $uriBuilderConfig = $this->config->getUriBuilderConfig($this->tableName);
+                $uriBuilderConfig = $this->config->getUriBuilderConfig($this->index, $this->tableName);
                 $uriBuilderConfig['uid'] = $result['uid'];
                 $documentBody['url'] = $this->buildUrlFor($uriBuilderConfig);
             }
@@ -42,18 +42,15 @@ class GenericTableIndexer extends AbstractElasticIndexer
 
             // Every 1000 documents stop and send the bulk request
             if ($iterator % 1000 === 0) {
-                $responses = $client->bulk($params);
+                $client->bulk($params);
 
                 // erase the old bulk request
                 $params = ['body' => []];
-
-                // unset the bulk response when you are done to save memory
-                unset($responses);
             }
         }
 
         if (!empty($params['body'])) {
-            $responses = $client->bulk($params);
+            $client->bulk($params);
         }
     }
 }

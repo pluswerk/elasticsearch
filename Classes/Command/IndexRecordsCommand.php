@@ -8,8 +8,10 @@ use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidIndexerException;
 use Pluswerk\Elasticsearch\Indexer\AbstractElasticIndexer;
+use Pluswerk\Elasticsearch\Utility\HelperUtility;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
@@ -29,114 +31,25 @@ class IndexRecordsCommand extends Command
         $this->setDescription('Indexes records based on your yaml file.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    /**
+     * @param \Symfony\Component\Console\Input\InputInterface $input
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidIndexerException
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
-        /** @var Site $site */
-        foreach ($siteFinder->getAllSites(false) as $site) {
-            if (isset($site->getConfiguration()['elasticsearch'])) {
-                $config = GeneralUtility::makeInstance(ElasticConfig::class, $site);
-                $this->purgeOldAndRestrictedRecords($config);
-                $this->indexRecordsForSite($config);
-            }
-        }
-    }
 
-    private function debug($var, int $depth = 4): void
-    {
-        \TYPO3\CMS\Extbase\Utility\DebuggerUtility::var_dump($var, '$var (' . __FILE__ . ':' . __LINE__ . ')', $depth, true);
-    }
+        // TODO the output: helperutility can not autowire outputinterface because of abstract in php-fpm
+        // TODO and here it should be the cli output...
+        $helperUtility = new HelperUtility(new NullOutput());
 
-    private function indexRecordsForSite(ElasticConfig $config): void
-    {
-        foreach ($config->getIndexableTables() as $tableName) {
-            $indexingClass = $config->getIndexingClassForTable($tableName);
-            if ($indexingClass !== '') {
-                $indexer = GeneralUtility::makeInstance($indexingClass, $config, $tableName, $this->output);
-
-                if (!($indexer instanceof AbstractElasticIndexer)) {
-                    throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractElasticIndexer::class . '".');
-                }
-
-                $indexer->process();
-                $this->output->writeln(sprintf('<info>Finished indexing entities of table %s.</info>', $tableName));
-            }
-        }
-    }
-
-    private function purgeOldAndRestrictedRecords(ElasticConfig $config): void
-    {
-        $this->output->writeln('<info>Purging old elasticsearch data...</info>');
-        $this->bulkDeletePages($config);
-
-        $config->getClient()->deleteByQuery(
-            [
-                'index' => $config->getIndexName(),
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'must_not' => [
-                                'term' => [
-                                    'id' => 'pages',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ]
-        );
-        $this->output->writeln('<info>Finished purging old elasticsearch data.</info>');
-    }
-
-    private function bulkDeletePages(ElasticConfig $config): void
-    {
-        /** @var QueryBuilder $queryBuilder */
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('pages');
-        $queryBuilder->getRestrictions()->removeAll();
-        $conditions[] = $queryBuilder->expr()->eq('deleted', 1);
-        $conditions[] = $queryBuilder->expr()->eq('hidden', 1);
-        $conditions[] = $queryBuilder->expr()->eq('no_index', 1);
-        $conditions[] = $queryBuilder->expr()->eq('no_follow', 1);
-        $conditions[] = $queryBuilder->expr()->neq('fe_group', '""');
-
-        $pageResult = $queryBuilder->select('uid')
-            ->from('pages')
-            ->where(
-                $queryBuilder->expr()->orX()->addMultiple($conditions)
-            )
-            ->execute()
-            ->fetchAll();
-
-        $client = $config->getClient();
-
-        if ($client === null) {
-            throw new ClientNotAvailableException('No elasticsearch client was found.');
+        $configurations = $helperUtility->getAllConfigurations();
+        foreach ($configurations as $configuration) {
+            $helperUtility->indexRecordsByConfiguration($configuration);
         }
 
-        $iterator = 0;
-        foreach ($pageResult as $page) {
-            $iterator++;
-            $params['body'][] = [
-                'delete' => [
-                    '_index' => $config->getIndexName(),
-                    '_id' => 'pages:' . $page['uid'],
-                ],
-            ];
-
-            if ($iterator % 1000 === 0) {
-                $responses = $client->bulk($params);
-
-                // erase the old bulk request
-                $params = ['body' => []];
-
-                // unset the bulk response when you are done to save memory
-                unset($responses);
-            }
-        }
-
-        if (!empty($params['body'])) {
-            $responses = $client->bulk($params);
-        }
+        return 0;
     }
 }

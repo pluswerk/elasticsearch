@@ -29,19 +29,17 @@ class ElasticConfig
             ->build();
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function getServerConfig(): array
     {
-        if (isset($this->site->getConfiguration()['elasticsearch']['server'])) {
-            $serverConfig = [];
+        return array_flip(array_flip($this->site->getConfiguration()['elasticsearch']['server'] ?? []));
+    }
 
-            foreach ($this->site->getConfiguration()['elasticsearch']['server'] as $key => $value) {
-                $serverConfig[$key] = $value;
-            }
-
-            return $serverConfig;
-        }
-
-        return [];
+    public function getIndexNames(): array
+    {
+        return array_column($this->site->getConfiguration()['elasticsearch']['indices'] ?? [], 'index');
     }
 
     public function getIndexName(): string
@@ -66,14 +64,19 @@ class ElasticConfig
         return [];
     }
 
-    public function getFieldMappingForTable(string $tableName): array
+    public function getFieldMappingForTable(string $index, string $tableName): array
     {
-        return $this->site->getConfiguration()['elasticsearch']['tables'][$tableName]['mapping'] ?? [];
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['mapping'] ?? [];
     }
 
-    public function getAnalyzers(): array
+    public function getConfigForTable(string $index, string $tableName): array
     {
-        return $this->site->getConfiguration()['elasticsearch']['analyzers'] ?? [];
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['config'] ?? [];
+    }
+
+    public function getAnalyzers(string $index): array
+    {
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['analyzers'] ?? [];
     }
 
     public function getClient(): ?Client
@@ -81,30 +84,35 @@ class ElasticConfig
         return $this->client;
     }
 
-    public function isMiddlewareProcessingAllowed(): bool
+    public function isMiddlewareProcessingAllowed(string $index): bool
     {
-        if (
-            isset($this->site->getConfiguration()['elasticsearch']['usePageMiddleware']) &&
-            (bool)$this->site->getConfiguration()['elasticsearch']['usePageMiddleware'] === false
-        ) {
-            return false;
-        }
-
-        return true;
+        return !(isset($this->site->getConfiguration()['elasticsearch']['indices'][$index]['usePageMiddleware']) &&
+            (bool)$this->site->getConfiguration()['elasticsearch']['indices'][$index]['usePageMiddleware'] === false);
     }
 
-    public function getIndexableTables(): array
+    /**
+     * @param string $index
+     * @return array<int, string>
+     */
+    public function getIndexableTables(string $index): array
     {
-        if (isset($this->site->getConfiguration()['elasticsearch']['tables'])) {
-            return array_keys($this->site->getConfiguration()['elasticsearch']['tables']);
+        if (empty($this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'])) {
+            return [];
         }
 
-        return [];
+        $indexableTables = [];
+        foreach ($this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'] as $tableName => $tableConfiguration) {
+            if ($tableConfiguration) {
+                $indexableTables[] = $tableName;
+            }
+        }
+
+        return $indexableTables;
     }
 
-    public function getIndexingClassForTable($tableName): string
+    public function getIndexingClassForTable(string $index, string $tableName): string
     {
-        return $this->site->getConfiguration()['elasticsearch']['tables'][$tableName]['indexClass'] ?? '';
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['indexClass'] ?? '';
     }
 
     public function getSearchFields(): array
@@ -117,8 +125,8 @@ class ElasticConfig
         return $this->site;
     }
 
-    public function getUriBuilderConfig(string $tableName): array
+    public function getUriBuilderConfig(string $index, string $tableName): array
     {
-        return $this->site->getConfiguration()['elasticsearch']['tables'][$tableName]['uriBuilderConfig'] ?? [];
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['uriBuilderConfig'] ?? [];
     }
 }
