@@ -8,6 +8,7 @@ use Elasticsearch\ClientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
+use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -56,15 +57,20 @@ class CreateIndexCommand extends Command
     protected function createIndexForSite(Site $site): void
     {
         $this->output->writeln(sprintf('<comment>Creating new elasticsearch index for %s</comment>', $site->getIdentifier()));
-        $config = GeneralUtility::makeInstance(ElasticConfig::class, $site);
-        $client = $config->getClient();
-        if (null === $client) {
-            throw new ClientNotAvailableException('Could not create client');
-        }
+        $elasticConfigs = ElasticConfig::bySite($site);
+        foreach ($elasticConfigs as $config) {
+            $client = $config->getClient();
+            if (null === $client) {
+                throw new ClientNotAvailableException('Could not create client');
+            }
 
-        $this->output->writeln('<comment>Deleting old index..</comment>');
-        $indices = $config->getIndexNames();
-        foreach ($indices as $index) {
+            try {
+                $index = $config->getIndexName();
+            } catch (InvalidConfigurationException $e) {
+                $this->output->writeln('<warning>' . $e->getMessage() . '</warning>');
+                continue;
+            }
+            $this->output->writeln('<comment>Deleting old index..</comment>');
             try {
                 $client->indices()->delete(['index' => $index]);
             } catch (Missing404Exception $e) {

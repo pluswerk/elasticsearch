@@ -6,6 +6,7 @@ namespace Pluswerk\Elasticsearch\Utility;
 
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
+use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Pluswerk\Elasticsearch\Exception\InvalidIndexerException;
 use Pluswerk\Elasticsearch\Indexer\AbstractElasticIndexer;
 use Symfony\Component\Console\Output\NullOutput;
@@ -34,7 +35,14 @@ class HelperUtility
         /** @var Site $site */
         foreach ($siteFinder->getAllSites(false) as $site) {
             if (isset($site->getConfiguration()['elasticsearch'])) {
-                $configs[] = GeneralUtility::makeInstance(ElasticConfig::class, $site);
+                $configsBySite = ElasticConfig::bySite($site);
+                foreach ($configsBySite as $elasticConfig) {
+                    try {
+                        $configs[$elasticConfig->getIndexName()] = $elasticConfig;
+                    } catch (InvalidConfigurationException $e) {
+                        $this->output->writeln('<warning>' . $e->getMessage() . '</warning>');
+                    }
+                }
             }
         }
         return $configs;

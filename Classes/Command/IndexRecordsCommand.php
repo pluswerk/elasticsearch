@@ -6,6 +6,7 @@ namespace Pluswerk\Elasticsearch\Command;
 
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
+use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Pluswerk\Elasticsearch\Exception\InvalidIndexerException;
 use Pluswerk\Elasticsearch\Indexer\AbstractElasticIndexer;
 use Pluswerk\Elasticsearch\Utility\HelperUtility;
