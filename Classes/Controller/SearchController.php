@@ -36,13 +36,11 @@ class SearchController extends ActionController
         ];
 
         $client = $elasticConfig->getClient();
-        if (null !== $client) {
-            $results = $client->search($searchParams);
-            if ($results['hits']['hits']) {
-                header('Content-Type: application/json');
-                echo json_encode($results['hits']['hits']);
-                exit;
-            }
+        $results = $client->search($searchParams);
+        if ($results['hits']['hits']) {
+            header('Content-Type: application/json');
+            echo json_encode($results['hits']['hits']);
+            exit;
         }
 
         echo '{}';

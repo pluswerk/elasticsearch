@@ -60,9 +60,6 @@ class CreateIndexCommand extends Command
         $elasticConfigs = ElasticConfig::bySite($site);
         foreach ($elasticConfigs as $config) {
             $client = $config->getClient();
-            if (null === $client) {
-                throw new ClientNotAvailableException('Could not create client');
-            }
 
             try {
                 $index = $config->getIndexName();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Utility;
 
+use GuzzleHttp\Psr7\ServerRequest;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
@@ -13,6 +14,8 @@ use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\Routing\PageArguments;
+use TYPO3\CMS\Core\Routing\SiteRouteResult;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -93,9 +96,6 @@ class HelperUtility
         $this->bulkDeletePages($config);
 
         $client = $config->getClient();
-        if ($client === null) {
-            throw new ClientNotAvailableException('No elasticsearch client was found.');
-        }
 
         $client->deleteByQuery(
             [
@@ -140,10 +140,6 @@ class HelperUtility
             ->fetchAll();
 
         $client = $config->getClient();
-
-        if ($client === null) {
-            throw new ClientNotAvailableException('No elasticsearch client was found.');
-        }
 
         $iterator = 0;
         foreach ($pageResult as $page) {

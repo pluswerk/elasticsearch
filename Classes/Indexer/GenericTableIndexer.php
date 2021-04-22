@@ -9,9 +9,6 @@ class GenericTableIndexer extends AbstractElasticIndexer
     public function process(): void
     {
         $client = $this->config->getClient();
-        if ($client === null) {
-            return;
-        }
 
         $results = $this->findAllTableEntries();
         $params = [];

@@ -6,8 +6,10 @@ namespace Pluswerk\Elasticsearch\Config;
 
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
-use TYPO3\CMS\Core\Http\Request;
+
+use Psr\Http\Message\RequestInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 
@@ -21,18 +23,23 @@ class ElasticConfig
     {
     }
 
-    public static function byRequest(Request $request): ElasticConfig
+    public static function byRequest(RequestInterface $request): ElasticConfig
     {
         $self = new static();
+
         $self->site = $request->getAttributes()['site'];
         $self->siteLanguage = $request->getAttributes()['language'];
         $self->buildClient();
         return $self;
     }
 
-    private function buildClient(): void
+    protected function buildClient(): void
     {
-        $this->client = ClientBuilder::create()->setHosts($this->getServerConfig())->build();
+        $client = ClientBuilder::create()->setHosts($this->getServerConfig())->build();
+        if (null === $client) {
+            throw new ClientNotAvailableException('Could not create ElasticConfig');
+        }
+        $this->client = $client;
     }
 
     /**
@@ -125,7 +132,7 @@ class ElasticConfig
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['analyzers'] ?? [];
     }
 
-    public function getClient(): ?Client
+    public function getClient(): Client
     {
         return $this->client;
     }

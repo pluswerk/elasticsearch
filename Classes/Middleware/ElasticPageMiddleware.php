@@ -36,7 +36,7 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
 
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->elasticPageExporter = GeneralUtility::getContainer()->get(ElasticPageExporter::class);
+        $this->elasticPageExporter = GeneralUtility::makeInstance(ElasticPageExporter::class, $request);
         /** @var \TYPO3\CMS\Core\Http\Response $response */
         $response = $handler->handle($request);
 
@@ -51,7 +51,9 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
                 return $response;
             }
 
-            $this->elasticPageExporter->indexContent($html, $request->getUri());
+            $page = $this->getTypoScriptFrontendController()->page;
+            $page['content'] = $html;
+            $this->elasticPageExporter->indexContent($page, $request->getUri());
         }
 
         return $response;
