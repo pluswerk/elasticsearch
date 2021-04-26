@@ -12,6 +12,7 @@ use TYPO3\CMS\Core\Core\Environment;
 class PdfIndexer extends AbstractIndexer
 {
     protected string $content = '';
+    protected int $pid;
 
     public function process(): void
     {
@@ -27,7 +28,7 @@ class PdfIndexer extends AbstractIndexer
             $id = $this->tableName . '/' . sha1($file['href']);
 
             $params['body'][] = $this->getIndexBody($id);
-            $documentBody = $this->getDocumentBody(array_merge($content, $file));
+            $documentBody = $this->getDocumentBody(array_merge($content, $file, ['pid' => $this->pid]));
             $params['body'][] = $documentBody;
 
             $i++;
@@ -182,6 +183,12 @@ class PdfIndexer extends AbstractIndexer
         }
 
         return $return;
+    }
+
+    public function setPid(int $pid): self
+    {
+        $this->pid = $pid;
+        return $this;
     }
 
     public function setContent(string $content): self

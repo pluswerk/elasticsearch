@@ -58,7 +58,7 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
             $indexBody[$elasticField] = $page[$typoField] ?? '';
         }
 
-        $indexBody['id'] = $this->generateIdByDocument($indexBody['id']);
+        $indexBody['id'] = $this->generateIdByDocument((string)$indexBody['id']);
 
         $indexingParameters = [
             'index' => $this->elasticConfig->getIndexName(),
