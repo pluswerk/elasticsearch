@@ -9,7 +9,7 @@ use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Pluswerk\Elasticsearch\Exception\InvalidIndexerException;
-use Pluswerk\Elasticsearch\Indexer\AbstractElasticIndexer;
+use Pluswerk\Elasticsearch\Indexer\AbstractIndexer;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\ConnectionPool;
@@ -77,8 +77,8 @@ class HelperUtility
         $indexingClass = $config->getIndexingClassForTable($index, $tableName);
         if ($indexingClass !== '') {
             $indexer = GeneralUtility::makeInstance($indexingClass, $config, $tableName, $index, $this->output);
-            if (!($indexer instanceof AbstractElasticIndexer)) {
-                throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractElasticIndexer::class . '".');
+            if (!($indexer instanceof AbstractIndexer)) {
+                throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractIndexer::class . '".');
             }
 
             $indexer->process();

@@ -12,7 +12,7 @@ use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 
-abstract class AbstractElasticIndexer implements ElasticIndexable
+abstract class AbstractIndexer implements ElasticIndexable
 {
     protected ElasticConfig $config;
     protected string $tableName;
@@ -30,10 +30,10 @@ abstract class AbstractElasticIndexer implements ElasticIndexable
     }
 
     /**
-     * @return string
+     * @return mixed
      * @throws \Pluswerk\Elasticsearch\Exception\TransportException
      */
-    protected function getContent(): string
+    protected function getContent()
     {
         $uri = $this->config->getConfigForTable($this->index, $this->tableName)['uri'] ?? '';
         if (!parse_url($uri)) {

@@ -14,9 +14,9 @@ class JsonResultIndexer extends AbstractUriContentIndexer
      * @throws \Pluswerk\Elasticsearch\Exception\TransportException
      * @throws \JsonException
      */
-    protected function getResults(): array
+    protected function getContent(): array
     {
-        $content = $this->getContent();
+        $content = parent::getContent();
 
         if (!($x = json_decode($content, false, 4, JSON_THROW_ON_ERROR))) {
             throw new ParseException('Could not parse content');

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Indexer;
 
-class GenericTableIndexer extends AbstractElasticIndexer
+class GenericTableIndexer extends AbstractIndexer
 {
     public function process(): void
     {

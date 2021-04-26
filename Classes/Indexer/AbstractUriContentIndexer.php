@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Indexer;
 
-abstract class AbstractUriContentIndexer extends AbstractElasticIndexer
+abstract class AbstractUriContentIndexer extends AbstractIndexer
 {
-    abstract protected function getResults();
-
     public function process(): void
     {
         $client = $this->config->getClient();
 
-        $results = $this->getResults();
+        $results = $this->getContent();
 
         $params = [];
         $iterator = 0;

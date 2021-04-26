@@ -13,9 +13,9 @@ class RssFeedIndexer extends AbstractUriContentIndexer
      * @throws \Pluswerk\Elasticsearch\Exception\ParseException
      * @throws \Pluswerk\Elasticsearch\Exception\TransportException
      */
-    protected function getResults(): array
+    protected function getContent(): array
     {
-        $content = $this->getContent();
+        $content = parent::getContent();
 
         if (!($x = simplexml_load_string($content))) {
             throw new ParseException('Could not parse content');

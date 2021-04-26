@@ -25,18 +25,10 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
 
     public function getIndexableContent(string $html): string
     {
-        if (!strpos($html, '<!--TYPO3SEARCH_begin-->') || !strpos($html, '<!--TYPO3SEARCH_end-->')) {
-            return '';
-        }
-
-        $html = substr($html, strpos($html, '<!--TYPO3SEARCH_begin-->') + strlen('<!--TYPO3SEARCH_begin-->'));
-        $html = substr($html, 0, strpos($html, '<!--TYPO3SEARCH_end-->'));
-
-        if ($html) {
-            return trim($html);
-        }
-
-        return '';
+        $indexableContents = [];
+        preg_match_all('/<!--\s*?TYPO3SEARCH_begin\s*?-->.*?<!--\s*?TYPO3SEARCH_end\s*?-->/mis', $html, $indexableContents);
+        $indexableContents = implode('', $indexableContents[0]);
+        return trim(preg_replace('/<!--(.*)-->/Uis', '', $indexableContents));
     }
 
     public function generateIdByDocument(string $identifier): string
@@ -46,7 +38,6 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
 
     public function removeContentById(string $id)
     {
-        var_dump("removing: " . $id);
         $this->elasticConfig->getClient()->delete([
             'id'=> $id,
             'index' => $this->elasticConfig->getIndexName()
@@ -55,7 +46,6 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
 
     public function indexContent(array $page, UriInterface $url): void
     {
-        var_dump("indexing");
         $page['url'] = $url->getPath();
         $pagesMapping = $this->elasticConfig->getFieldMappingForTable($this->elasticConfig->getIndexName(), 'pages');
         if (!isset($page['type'])) {
@@ -75,7 +65,7 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
             'id' => 'pages:' . $page['uid'],
             'body' => $indexBody
         ];
-var_dump($indexingParameters);
+
         try {
             $client = $this->elasticConfig->getClient();
             $client->index($indexingParameters);
