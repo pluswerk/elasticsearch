@@ -6,7 +6,7 @@ namespace Pluswerk\Elasticsearch\Indexer;
 
 use Pluswerk\Elasticsearch\Exception\ParseException;
 
-class JsonResultIndexer extends AbstractUriContentIndexer
+class JsonResultIndexer extends AbstractIndexer
 {
     /**
      * @return array<int,array<string,string>>
@@ -22,7 +22,7 @@ class JsonResultIndexer extends AbstractUriContentIndexer
             throw new ParseException('Could not parse content');
         }
 
-        $mapping = $this->config->getFieldMappingForTable($this->index, $this->tableName);
+        $mapping = $this->config->getFieldMappingForTable($this->tableName);
         $feeds = [];
         foreach ($x->result as $item) {
             $feed = [];

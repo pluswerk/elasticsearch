@@ -6,7 +6,7 @@ namespace Pluswerk\Elasticsearch\Indexer;
 
 use Pluswerk\Elasticsearch\Exception\ParseException;
 
-class RssFeedIndexer extends AbstractUriContentIndexer
+class RssFeedIndexer extends AbstractIndexer
 {
     /**
      * @return array<int,array<string,string>>
@@ -21,9 +21,9 @@ class RssFeedIndexer extends AbstractUriContentIndexer
             throw new ParseException('Could not parse content');
         }
 
-        $this->output->writeln(sprintf('<info>Connected to %s - %s</info>', $x->channel->title ?? '', $x->channel->description ?? ''));
+        $this->logger->notice(sprintf('<info>Connected to %s - %s</info>', $x->channel->title ?? '', $x->channel->description ?? ''));
 
-        $mapping = $this->config->getFieldMappingForTable($this->index, $this->tableName);
+        $mapping = $this->config->getFieldMappingForTable($this->tableName);
         $feeds = [];
         foreach ($x->channel->item as $item) {
             $feed = [];

@@ -7,35 +7,71 @@ namespace Pluswerk\Elasticsearch\Indexer;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\TransportException;
 use Pluswerk\Elasticsearch\Routing\CommandUriBuilder;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Console\Output\OutputInterface;
-use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Object\ObjectManager;
 
-abstract class AbstractIndexer implements ElasticIndexable
+abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     protected ElasticConfig $config;
     protected string $tableName;
-    protected string $index;
     protected ObjectManager $objectManager;
     protected OutputInterface $output;
 
-    public function __construct(ElasticConfig $config, string $tableName, string $index, OutputInterface $output)
+    public function __construct(ElasticConfig $config, string $tableName)
     {
-        $this->output = $output;
+        $this->objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         $this->config = $config;
         $this->tableName = $tableName;
-        $this->index = $index;
-        $this->objectManager = GeneralUtility::makeInstance(ObjectManager::class);
+    }
+
+    public function process(): void
+    {
+        $client = $this->config->getClient();
+
+        $results = $this->getContent();
+
+        $params = [];
+        $iterator = 0;
+
+        $this->logger->notice(sprintf('<info>Indexing %s entities of %s...</info>', count($results), $this->tableName));
+
+        foreach ($results as $result) {
+            $iterator++;
+            $id = $this->extractId($result);
+
+            $params['body'][] = $this->getIndexBody($id);
+            $documentBody = $this->getDocumentBody($result);
+
+            $params['body'][] = $documentBody;
+
+            // Every 1000 documents stop and send the bulk request
+            if ($iterator % 1000 === 0) {
+                $client->bulk($params);
+
+                // erase the old bulk request
+                $params = ['body' => []];
+            }
+        }
+
+        if (!empty($params['body'])) {
+            $client->bulk($params);
+        }
     }
 
     /**
+     * Downloads data from URI
+     *
      * @return mixed
      * @throws \Pluswerk\Elasticsearch\Exception\TransportException
      */
     protected function getContent()
     {
-        $uri = $this->config->getConfigForTable($this->index, $this->tableName)['uri'] ?? '';
+        $uri = $this->config->getConfigForTable($this->tableName)['uri'] ?? '';
         if (!parse_url($uri)) {
             throw new TransportException('Uri not valid ' . $uri);
         }
@@ -51,11 +87,12 @@ abstract class AbstractIndexer implements ElasticIndexable
     {
         return [
             'index' => [
-                '_index' => $this->index,
+                '_index' => $this->config->getIndexName(),
                 '_id' => $id,
             ],
         ];
     }
+
     protected function extractId(array &$result): string
     {
         $id = $this->tableName . ':' . $result['uid'];
@@ -63,26 +100,18 @@ abstract class AbstractIndexer implements ElasticIndexable
         return $id;
     }
 
-    protected function findAllTableEntries()
-    {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable($this->tableName);
-        return $queryBuilder
-            ->select('*')
-            ->from($this->tableName)
-            ->execute()
-            ->fetchAll();
-    }
+
 
     protected function getDocumentBody(array $result): array
     {
         $body = [];
-        $fieldMapping = $this->config->getFieldMappingForTable($this->index, $this->tableName);
+        $fieldMapping = $this->config->getFieldMappingForTable($this->tableName);
 
         foreach ($fieldMapping as $elasticField => $typoField) {
             if (isset($result[$typoField])) {
                 $body[$elasticField] = $result[$typoField];
             } else {
-                $this->output->writeln('<warning>Could not find field '.$typoField.' to map</warning>');
+                $this->logger->notice('<warning>Could not find field '.$typoField.' to map</warning>');
             }
         }
         if (isset($body['uid'])) {

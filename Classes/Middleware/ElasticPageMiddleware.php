@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Pluswerk\Elasticsearch\Middleware;
 
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
-use Pluswerk\Elasticsearch\Service\ElasticPageExporter;
+use Pluswerk\Elasticsearch\Service\PageIndexer;
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Http\Response;
@@ -22,30 +22,26 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
 {
     use LoggerAwareTrait;
 
-    /**
-     * @var Site
-     */
-    protected $site;
+    protected PageIndexer $pageIndexer;
 
     /**
-     * @var ElasticConfig
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
      */
-    protected $elasticConfig;
-
-    protected ElasticPageExporter $elasticPageExporter;
-
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
-        $this->elasticPageExporter = GeneralUtility::makeInstance(ElasticPageExporter::class, $request);
         /** @var \TYPO3\CMS\Core\Http\Response $response */
         $response = $handler->handle($request);
 
-        /** @var \TYPO3\CMS\Core\Site\Entity\SiteLanguage $siteLanguage */
-        $siteLanguage = $request->getAttribute('language');
+        $elasticConfig = ElasticConfig::byRequest($request);
+        if (null === $elasticConfig || !$elasticConfig->isMiddlewareProcessingAllowed()) {
+            return $response;
+        }
 
-        $index = $siteLanguage->toArray()['elasticsearch']['index'] ?? '';
-        if ($this->isPageIndexable($request, $response) && $this->elasticConfig !== null && $this->elasticConfig->isMiddlewareProcessingAllowed($index)) {
-            $html = $this->elasticPageExporter->getIndexableContent($this->getTypoScriptFrontendController()->content);
+        if ($this->isPageIndexable($request, $response)) {
+
+            $this->pageIndexer = GeneralUtility::makeInstance(PageIndexer::class, $elasticConfig, 'pages');
+            $html = $this->pageIndexer->getIndexableContent($this->getTypoScriptFrontendController()->content);
 
             if ($html === '') {
                 return $response;
@@ -53,7 +49,7 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
 
             $page = $this->getTypoScriptFrontendController()->page;
             $page['content'] = $html;
-            $this->elasticPageExporter->indexContent($page, $request->getUri());
+            $this->pageIndexer->indexContent($page, $request->getUri());
         }
 
         return $response;
@@ -65,11 +61,13 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
         if (
             !($response instanceof Response)
             || !($tsfe instanceof TypoScriptFrontendController)
-            || !$tsfe->isOutputting()
             || $tsfe->page['no_index'] === 1
             || $tsfe->page['no_follow'] === 1
             || $tsfe->page['hidden'] === 1
-            || !empty($tsfe->page['fe_group'])
+            || !empty(
+                $tsfe->page['fe_group']
+                || !$tsfe->isOutputting()
+            )
         ) {
             return false;
         }
@@ -86,18 +84,9 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
             return false;
         }
 
-        /** @var Site $site */
-        $this->site = $request->getAttributes()['site'];
-
-        if (!($this->site instanceof Site)) {
+        if (!($request->getAttributes()['site'] instanceof Site)) {
             return false;
         }
-
-        if (!isset($this->site->getConfiguration()['elasticsearch'])) {
-            return false;
-        }
-
-        $this->elasticConfig = ElasticConfig::byRequest($request);
 
         return true;
     }

@@ -9,7 +9,7 @@ use Elasticsearch\ClientBuilder;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 
-use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 
@@ -23,7 +23,10 @@ class ElasticConfig
     {
     }
 
-    public static function byRequest(RequestInterface $request): ElasticConfig
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
+    public static function byRequest(ServerRequestInterface $request): ElasticConfig
     {
         $self = new static();
 
@@ -33,6 +36,9 @@ class ElasticConfig
         return $self;
     }
 
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
     protected function buildClient(): void
     {
         $client = ClientBuilder::create()->setHosts($this->getServerConfig())->build();
@@ -53,6 +59,7 @@ class ElasticConfig
     /**
      * @param \TYPO3\CMS\Core\Site\Entity\Site $site
      * @return array<\Pluswerk\Elasticsearch\Config\ElasticConfig>
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
      */
     public static function bySite(Site $site): array
     {
@@ -68,6 +75,9 @@ class ElasticConfig
         return $elasticConfigurations;
     }
 
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
     public static function bySiteAndLanguage(Site $site, SiteLanguage $siteLanguage): ElasticConfig
     {
         $self = new static();
@@ -75,11 +85,6 @@ class ElasticConfig
         $self->siteLanguage = $siteLanguage;
         $self->buildClient();
         return $self;
-    }
-
-    public function getIndexNames(): array
-    {
-        return array_column($this->site->getConfiguration()['elasticsearch']['indices'] ?? [], 'index');
     }
 
     /**
@@ -117,18 +122,30 @@ class ElasticConfig
         return [];
     }
 
-    public function getFieldMappingForTable(string $index, string $tableName): array
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getFieldMappingForTable(string $tableName): array
     {
+        $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['mapping'] ?? [];
     }
 
-    public function getConfigForTable(string $index, string $tableName): array
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getConfigForTable(string $tableName): array
     {
+        $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['config'] ?? [];
     }
 
-    public function getAnalyzers(string $index): array
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getAnalyzers(): array
     {
+        $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['analyzers'] ?? [];
     }
 
@@ -137,18 +154,23 @@ class ElasticConfig
         return $this->client;
     }
 
-    public function isMiddlewareProcessingAllowed(string $index): bool
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function isMiddlewareProcessingAllowed(): bool
     {
+        $index = $this->getIndexName();
         return !(isset($this->site->getConfiguration()['elasticsearch']['indices'][$index]['usePageMiddleware']) &&
             (bool)$this->site->getConfiguration()['elasticsearch']['indices'][$index]['usePageMiddleware'] === false);
     }
 
     /**
-     * @param string $index
      * @return array<int, string>
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
-    public function getIndexableTables(string $index): array
+    public function getIndexableTables(): array
     {
+        $index = $this->getIndexName();
         if (empty($this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'])) {
             return [];
         }
@@ -163,8 +185,12 @@ class ElasticConfig
         return $indexableTables;
     }
 
-    public function getIndexingClassForTable(string $index, string $tableName): string
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getIndexingClassForTable(string $tableName): string
     {
+        $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['indexClass'] ?? '';
     }
 
@@ -178,8 +204,12 @@ class ElasticConfig
         return $this->site;
     }
 
-    public function getUriBuilderConfig(string $index, string $tableName): array
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getUriBuilderConfig(string $tableName): array
     {
+        $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['uriBuilderConfig'] ?? [];
     }
 }

@@ -4,32 +4,25 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Utility;
 
-use GuzzleHttp\Psr7\ServerRequest;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
-use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Pluswerk\Elasticsearch\Exception\InvalidIndexerException;
 use Pluswerk\Elasticsearch\Indexer\AbstractIndexer;
-use Symfony\Component\Console\Output\NullOutput;
-use Symfony\Component\Console\Output\OutputInterface;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
 use TYPO3\CMS\Core\Database\ConnectionPool;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
-use TYPO3\CMS\Core\Routing\PageArguments;
-use TYPO3\CMS\Core\Routing\SiteRouteResult;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class HelperUtility
+class HelperUtility implements LoggerAwareInterface
 {
-    protected OutputInterface $output;
-    public function __construct(NullOutput $output)
-    {
-        $this->output = $output;
-    }
+    use LoggerAwareTrait;
 
     /**
      * @return array<ElasticConfig>
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
      */
     public function getAllConfigurations(): array
     {
@@ -43,7 +36,7 @@ class HelperUtility
                     try {
                         $configs[$elasticConfig->getIndexName()] = $elasticConfig;
                     } catch (InvalidConfigurationException $e) {
-                        $this->output->writeln('<warning>' . $e->getMessage() . '</warning>');
+                        $this->logger->notice('<warning>' . $e->getMessage() . '</warning>');
                     }
                 }
             }
@@ -53,46 +46,23 @@ class HelperUtility
 
     /**
      * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidIndexerException|\Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidIndexerException|\Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     public function indexRecordsByConfiguration(ElasticConfig $config): void
     {
         $this->purgeOldAndRestrictedRecords($config);
-        $indices = $config->getIndexNames();
-        foreach ($indices as $index) {
-            foreach ($config->getIndexableTables($index) as $tableName) {
-                $this->indexRecordsByConfigurationAndTableName($config, $index, $tableName);
-            }
+        foreach ($config->getIndexableTables() as $tableName) {
+            $this->indexRecordsByConfigurationAndTableName($config, $tableName);
         }
     }
 
     /**
      * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
-     * @param string $index
-     * @param string $tableName
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidIndexerException
-     */
-    public function indexRecordsByConfigurationAndTableName(ElasticConfig $config, string $index, string $tableName): void
-    {
-        $indexingClass = $config->getIndexingClassForTable($index, $tableName);
-        if ($indexingClass !== '') {
-            $indexer = GeneralUtility::makeInstance($indexingClass, $config, $tableName, $index, $this->output);
-            if (!($indexer instanceof AbstractIndexer)) {
-                throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractIndexer::class . '".');
-            }
-
-            $indexer->process();
-            $this->output->writeln(sprintf('<info>Finished indexing entities of table %s.</info>', $tableName));
-        }
-    }
-
-    /**
-     * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     protected function purgeOldAndRestrictedRecords(ElasticConfig $config): void
     {
-        $this->output->writeln('<info>Purging old elasticsearch data...</info>');
+        $this->logger->notice('<info>Purging old elasticsearch data...</info>');
         $this->bulkDeletePages($config);
 
         $client = $config->getClient();
@@ -113,12 +83,12 @@ class HelperUtility
                 ],
             ]
         );
-        $this->output->writeln('<info>Finished purging old elasticsearch data.</info>');
+        $this->logger->notice('<info>Finished purging old elasticsearch data.</info>');
     }
 
     /**
      * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     protected function bulkDeletePages(ElasticConfig $config): void
     {
@@ -137,7 +107,7 @@ class HelperUtility
                 $queryBuilder->expr()->orX()->addMultiple($conditions)
             )
             ->execute()
-            ->fetchAll();
+            ->fetchAllAssociative();
 
         $client = $config->getClient();
 
@@ -161,6 +131,25 @@ class HelperUtility
 
         if (!empty($params['body'])) {
             $client->bulk($params);
+        }
+    }
+
+    /**
+     * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
+     * @param string $tableName
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidIndexerException
+     */
+    public function indexRecordsByConfigurationAndTableName(ElasticConfig $config, string $tableName): void
+    {
+        $indexingClass = $config->getIndexingClassForTable($tableName);
+        if ($indexingClass !== '') {
+            $indexer = GeneralUtility::makeInstance($indexingClass, $config, $tableName);
+            if (!($indexer instanceof AbstractIndexer)) {
+                throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractIndexer::class . '".');
+            }
+
+            $indexer->process();
+            $this->logger->notice(sprintf('<info>Finished indexing entities of table %s.</info>', $tableName));
         }
     }
 }

@@ -14,14 +14,44 @@ use TYPO3\CMS\Core\Routing\SiteMatcher;
 use TYPO3\CMS\Core\Routing\SiteRouteResult;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\Request;
 
-class RequesetTransformer
+class RequestTransformer
 {
+    /**
+     * Uses the PSR Request with its URL to create a Server Request
+     * Feeds the Request with "site, routing, language and arguments"
+     *
+     * @param \Psr\Http\Message\RequestInterface $request
+     * @return \Psr\Http\Message\ServerRequestInterface
+     * @throws \TYPO3\CMS\Core\Routing\RouteNotFoundException
+     */
     public function transformPsrRequestToServerRequest(RequestInterface $request): ServerRequestInterface
     {
-        $matcher = GeneralUtility::makeInstance(SiteMatcher::class);
         $serverRequest = GeneralUtility::makeInstance(ServerRequest::class, $request->getMethod(), $request->getUri());
+        return $this->enrichtRequest($serverRequest);
+    }
 
+    /**
+     * Uses the PSR Request with its URL to create a Server Request
+     * Feeds the Request with "site, routing, language and arguments"
+     *
+     * @param \TYPO3\CMS\Extbase\Mvc\Request $request
+     * @return \Psr\Http\Message\ServerRequestInterface
+     * @throws \TYPO3\CMS\Core\Routing\RouteNotFoundException
+     */
+    public function transformExtbaseMvcRequestToServerRequest(Request $request): ServerRequestInterface
+    {
+        $serverRequest = GeneralUtility::makeInstance(ServerRequest::class, $request->getMethod(), $request->getRequestUri());
+        return $this->enrichtRequest($serverRequest);
+    }
+
+    /**
+     * @throws \TYPO3\CMS\Core\Routing\RouteNotFoundException
+     */
+    protected function enrichtRequest(ServerRequestInterface $serverRequest): ServerRequestInterface
+    {
+        $matcher = GeneralUtility::makeInstance(SiteMatcher::class);
         /** @var SiteRouteResult $routeResult */
         $routeResult = $matcher->matchRequest($serverRequest);
 
@@ -33,7 +63,6 @@ class RequesetTransformer
 
         $serverRequest = $serverRequest->withAttribute('site', $routeResult->getSite());
         $serverRequest = $serverRequest->withAttribute('language', $routeResult->getLanguage());
-        $serverRequest = $serverRequest->withAttribute('routing', $routeResult);
         $serverRequest = $serverRequest->withAttribute('routing', $routeResult);
         $serverRequest = $serverRequest->withAttribute('arguments', $pageArguments);
         if ($routeResult->getLanguage() instanceof SiteLanguage) {

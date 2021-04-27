@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Command;
 
-use Elasticsearch\ClientBuilder;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
-use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -33,11 +31,13 @@ class CreateIndexCommand extends Command
      * @param \Symfony\Component\Console\Output\OutputInterface $output
      * @return int
      * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
+
         /** @var Site $site */
         foreach ($siteFinder->getAllSites(false) as $site) {
             if (isset($site->getConfiguration()['elasticsearch'])) {
@@ -52,7 +52,7 @@ class CreateIndexCommand extends Command
 
     /**
      * @param \TYPO3\CMS\Core\Site\Entity\Site $site
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException|\Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     protected function createIndexForSite(Site $site): void
     {
@@ -73,6 +73,7 @@ class CreateIndexCommand extends Command
             } catch (Missing404Exception $e) {
                 $this->output->writeln(sprintf('<comment>No index "%s" exists yet, creating new now..</comment>', $index));
             }
+
             $params = [
                 'index' => $index,
                 'body' => [
@@ -80,7 +81,7 @@ class CreateIndexCommand extends Command
                         'number_of_shards' => 1,
                         'number_of_replicas' => 1,
                         'analysis' => [
-                            'analyzer' => $config->getAnalyzers($index),
+                            'analyzer' => $config->getAnalyzers(),
                         ],
                     ],
                     'mappings' => [

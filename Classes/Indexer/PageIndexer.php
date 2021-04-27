@@ -5,24 +5,12 @@ declare(strict_types=1);
 namespace Pluswerk\Elasticsearch\Service;
 
 use Exception;
-use Pluswerk\Elasticsearch\Config\ElasticConfig;
-use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
+use Pluswerk\Elasticsearch\Indexer\AbstractIndexer;
 use Psr\Http\Message\UriInterface;
-use Psr\Log\LoggerAwareInterface;
-use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LogLevel;
-use TYPO3\CMS\Core\Http\Request;
-use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
 
-abstract class AbstractElasticPageExporter implements LoggerAwareInterface
+class PageIndexer extends AbstractIndexer
 {
-    use LoggerAwareTrait;
-
-    /**
-     * @var ElasticConfig
-     */
-    protected $elasticConfig;
-
     public function getIndexableContent(string $html): string
     {
         $indexableContents = [];
@@ -38,16 +26,16 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
 
     public function removeContentById(string $id)
     {
-        $this->elasticConfig->getClient()->delete([
+        $this->config->getClient()->delete([
             'id'=> $id,
-            'index' => $this->elasticConfig->getIndexName()
+            'index' => $this->config->getIndexName()
         ]);
     }
 
     public function indexContent(array $page, UriInterface $url): void
     {
         $page['url'] = $url->getPath();
-        $pagesMapping = $this->elasticConfig->getFieldMappingForTable($this->elasticConfig->getIndexName(), 'pages');
+        $pagesMapping = $this->config->getFieldMappingForTable('pages');
         if (!isset($page['type'])) {
             $page['type'] = 'pages';
         }
@@ -61,13 +49,13 @@ abstract class AbstractElasticPageExporter implements LoggerAwareInterface
         $indexBody['id'] = $this->generateIdByDocument((string)$indexBody['id']);
 
         $indexingParameters = [
-            'index' => $this->elasticConfig->getIndexName(),
+            'index' => $this->config->getIndexName(),
             'id' => 'pages:' . $page['uid'],
             'body' => $indexBody
         ];
 
         try {
-            $client = $this->elasticConfig->getClient();
+            $client = $this->config->getClient();
             $client->index($indexingParameters);
         } catch (Exception $e) {
             $this->logger->log(LogLevel::WARNING, $e->getMessage());

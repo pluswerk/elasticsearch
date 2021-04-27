@@ -9,7 +9,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
-final class CommandUriBuilder extends UriBuilder
+class CommandUriBuilder extends UriBuilder
 {
     /**
      * Creates an URI used for linking to an Extbase action.
@@ -23,7 +23,7 @@ final class CommandUriBuilder extends UriBuilder
      * @return string the rendered URI
      * @see build()
      */
-    public function uriFor($actionName = null, $controllerArguments = [], $controllerName = null, $extensionName = null, $pluginName = null)
+    public function uriFor($actionName = null, $controllerArguments = [], $controllerName = null, $extensionName = null, $pluginName = null): string
     {
         if ($actionName !== null) {
             $controllerArguments['action'] = $actionName;

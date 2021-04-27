@@ -11,7 +11,7 @@ No code execution -> no performance issues.
 Usage of [typo3_console](https://github.com/TYPO3-Console/TYPO3-Console) is strongly recommended for executing commands easily.
 
 ## Quickstart
-1. Add two comments to your default fluid layout to mark the indexable contents: "\<!--TYPO3SEARCH_begin-->" and "\<!--TYPO3SEARCH_end-->".
+1. Add two comments to your default fluid layout to mark the indexable contents: "\<!--TYPO3SEARCH_begin-->" and "\<!--TYPO3SEARCH_end-->". (Add those sections mutliple times if you wish to.)
 2. Add the yaml configuration to your sites.
 3. Run the command "elasticsearch:create-indices" to create the needed structure inside your elasticsearch
 4. Run the command "elasticsearch:index-records" to index your records.
@@ -110,7 +110,19 @@ elasticsearch:
         type: text
         store: true
         analyzer: html_analyzer
-```
+``` 
+
+
+Of course the site/language combination needs to know it's index name to use
+
+```yaml
+languages:
+  -
+    title: 'German website'
+    elasticsearch:
+      index: de-de
+``` 
+
 
 ## Analyzers
 You can specify and use your own analyzers as well. Here is an example of an analyzer with stripped html-chars and a lowercase filter:
@@ -349,6 +361,14 @@ The fields are used internally and will transform to
  - type = tablename + type
    - if empty type = tablename 
 
-# Language
+# Symbiosis
+Witht he use of staticfilecache extension and their BoostQueue you can enable boost-time site indexing with a Listener
 
-TODO
+```yaml
+services:
+  AUS\AusProject\EventListener\BuildClientEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'AUS\AusProject\EventListener\BuildClientEventListener'
+        event: SFC\Staticfilecache\Event\BuildClientEvent
+

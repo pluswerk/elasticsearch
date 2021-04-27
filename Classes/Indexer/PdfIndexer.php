@@ -50,7 +50,7 @@ class PdfIndexer extends AbstractIndexer
     {
         $version = $this->call($this->getTikaUri() . 'version', 'GET', [], null);
         if (strpos($version, 'Apache Tika') !== 0) {
-            $this->output->writeln('Could not connect to tika (' . $this->getTikaUri() . 'version' . '), received: ' . $version);
+            $this->logger->notice('Could not connect to tika (' . $this->getTikaUri() . 'version' . '), received: ' . $version);
             return false;
         }
         return true;
@@ -71,7 +71,7 @@ class PdfIndexer extends AbstractIndexer
     {
         $tikaUri = getenv('TIKA_URI');
         if (!$tikaUri) {
-            $this->output->writeln('.env TIKA_URI is empty, can not index files');
+            $this->logger->notice('.env TIKA_URI is empty, can not index files');
             return '';
         }
         if ($tikaUri[strlen($tikaUri) - 1] !== '/') {
@@ -111,7 +111,7 @@ class PdfIndexer extends AbstractIndexer
             return $files;
         }
 
-        $this->output->writeln('Could not parse anchors on html, did not investigate PDF contents');
+        $this->logger->notice('Could not parse anchors on html, did not investigate PDF contents');
         return [];
     }
 
@@ -175,7 +175,7 @@ class PdfIndexer extends AbstractIndexer
                 }
 
                 if (false === $contentFromTika) {
-                    $this->output->writeln('Could not decode content(' . $endpoint . ') from tika' . substr($fileContent, 0, 32));
+                    $this->logger->notice('Could not decode content(' . $endpoint . ') from tika' . substr($fileContent, 0, 32));
                     continue;
                 }
                 $return[$endpoint] = $contentFromTika;
