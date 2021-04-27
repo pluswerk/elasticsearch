@@ -15,4 +15,5 @@ call_user_func(function () {
             'Search' => 'search',
         ]
     );
+    \Pluswerk\Elasticsearch\Hook\TceMainHook::register();
 }, $_EXTKEY);

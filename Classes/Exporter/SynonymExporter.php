@@ -74,6 +74,30 @@ protected SiteFinder $siteFinder;
             // index the synonym
             $this->output->writeln($synonym->getUid());
             foreach ($synonym->getTerms() as $term) {
+                // TODO synonym needs the word-field
+                // "all terms, maybe + word(if self active) => "the word"
+                // TODO is the self needed as in solr?
+                // TODO aggregate the list for one index completely, then send with the client's body (well first output the debug :)
+                /*
+                 * PUT /test_index
+                    {
+                      "settings": {
+                        "index": {
+                          "analysis": {
+                            "filter": {
+                              "synonym": {
+                                "type": "synonym",
+                                "synonyms": [
+                                  "i-pod, i pod => ipod",
+                                  "universe, cosmos"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                 */
                 $this->output->writeln($term->getTitle());
             }
         }

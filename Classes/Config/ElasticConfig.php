@@ -154,15 +154,6 @@ class ElasticConfig
     /**
      * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
-    public function getSearchAnalyzers(): array
-    {
-        $index = $this->getIndexName();
-        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['search_analyzers'] ?? [];
-    }
-
-    /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
-     */
     public function getFilters(): array
     {
         $index = $this->getIndexName();

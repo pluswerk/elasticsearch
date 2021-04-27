@@ -84,7 +84,6 @@ class CreateIndexCommand extends Command
                         'analysis' => [
                             'filter' => $config->getFilters(),
                             'analyzer' => $config->getAnalyzers(),
-                            'search_analyzer' => $config->getSearchAnalyzers()
                         ],
                     ],
                     'mappings' => [
