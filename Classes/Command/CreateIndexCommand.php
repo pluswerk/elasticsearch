@@ -40,11 +40,7 @@ class CreateIndexCommand extends Command
 
         /** @var Site $site */
         foreach ($siteFinder->getAllSites(false) as $site) {
-            if (isset($site->getConfiguration()['elasticsearch'])) {
-                $this->createIndexForSite($site);
-            } else {
-                $output->writeln('Site ' . $site->getIdentifier() . ' has no elasticsearch configuration');
-            }
+            $this->createIndexForSite($site);
         }
 
         return 0;
@@ -56,11 +52,16 @@ class CreateIndexCommand extends Command
      */
     protected function createIndexForSite(Site $site): void
     {
-        $this->output->writeln(sprintf('<comment>Creating new elasticsearch index for %s</comment>', $site->getIdentifier()));
         $elasticConfigs = ElasticConfig::bySite($site);
+        if (!$elasticConfigs) {
+            $this->output->writeln('Site ' . $site->getIdentifier() . ' has no elasticsearch configuration');
+            return;
+        }
+
+        $this->output->writeln(sprintf('<comment>Creating new elasticsearch index for %s</comment>', $site->getIdentifier()));
+
         foreach ($elasticConfigs as $config) {
             $client = $config->getClient();
-
             try {
                 $index = $config->getIndexName();
             } catch (InvalidConfigurationException $e) {
@@ -81,7 +82,9 @@ class CreateIndexCommand extends Command
                         'number_of_shards' => 1,
                         'number_of_replicas' => 1,
                         'analysis' => [
+                            'filter' => $config->getFilters(),
                             'analyzer' => $config->getAnalyzers(),
+                            'search_analyzer' => $config->getSearchAnalyzers()
                         ],
                     ],
                     'mappings' => [

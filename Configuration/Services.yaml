@@ -1,0 +1,18 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Symfony\Component\Console\Output\ConsoleOutput:
+    public: true
+
+  Pluswerk\Elasticsearch\Domain\Repository\:
+    resource: '../Classes/Domain/Repository/*'
+    public: true
+
+  Pluswerk\Elasticsearch\Exporter\:
+    resource: '../Classes/Exporter/*'
+    public: true
+    arguments:
+      $output: '@Symfony\Component\Console\Output\ConsoleOutput'

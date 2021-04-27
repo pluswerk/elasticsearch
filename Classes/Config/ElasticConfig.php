@@ -12,6 +12,7 @@ use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
+use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class ElasticConfig
 {
@@ -99,6 +100,7 @@ class ElasticConfig
                 'The site ' . $this->site->getIdentifier() . ' with language ' . $this->siteLanguage->getTitle() . ' has no index defined'
             );
         }
+
         if (!isset($this->site->getConfiguration()['elasticsearch']['indices'][$index])) {
             throw new InvalidConfigurationException('The sites index ' . $index . ' has no configuration counterpart in elasticsearch configuration');
         }
@@ -147,6 +149,24 @@ class ElasticConfig
     {
         $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['analyzers'] ?? [];
+    }
+
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getSearchAnalyzers(): array
+    {
+        $index = $this->getIndexName();
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['search_analyzers'] ?? [];
+    }
+
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getFilters(): array
+    {
+        $index = $this->getIndexName();
+        return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['filters'] ?? [];
     }
 
     public function getClient(): Client

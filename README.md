@@ -372,3 +372,8 @@ services:
         identifier: 'AUS\AusProject\EventListener\BuildClientEventListener'
         event: SFC\Staticfilecache\Event\BuildClientEvent
 
+
+# Synonyms
+https://www.elastic.co/guide/en/elasticsearch/guide/1.x/synonyms-expand-or-contract.html#synonyms-expansion
+
+https://www.elastic.co/guide/en/elasticsearch/reference/current/search-analyzer.html
