@@ -7,6 +7,7 @@ namespace Pluswerk\Elasticsearch\Indexer;
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7\Request;
 use RuntimeException;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use TYPO3\CMS\Core\Core\Environment;
 
 class PdfIndexer extends AbstractIndexer
@@ -16,6 +17,7 @@ class PdfIndexer extends AbstractIndexer
 
     public function process(): void
     {
+        $output = new ConsoleOutput();
         $this->pingTika();
         $client = $this->config->getClient();
         $files = $this->extractFilesFromDomByFileExtension('pdf', $this->content);
@@ -25,6 +27,8 @@ class PdfIndexer extends AbstractIndexer
         foreach ($files as $file) {
             $fileContent = $this->getFileContent($file['href']);
             $content = $this->extractViaTika($fileContent);
+            $content['tika'] = trim(str_replace("\n", ' ',htmlspecialchars($content['tika'])));
+
             $id = $this->tableName . '/' . sha1($file['href']);
 
             $params['body'][] = $this->getIndexBody($id);
@@ -36,6 +40,7 @@ class PdfIndexer extends AbstractIndexer
                 $client->bulk($params);
                 $params = [];
             }
+            $output->writeln(' Indexing PDF ' . $file['title']);
         }
 
         if ($params) {

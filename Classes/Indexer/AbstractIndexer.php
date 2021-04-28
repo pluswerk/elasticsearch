@@ -11,7 +11,7 @@ use Psr\Log\LoggerAwareInterface;
 use Psr\Log\LoggerAwareTrait;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
-use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Object\Container\Container;
 
 abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
 {
@@ -19,12 +19,10 @@ abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
 
     protected ElasticConfig $config;
     protected string $tableName;
-    protected ObjectManager $objectManager;
     protected OutputInterface $output;
 
     public function __construct(ElasticConfig $config, string $tableName)
     {
-        $this->objectManager = GeneralUtility::makeInstance(ObjectManager::class);
         $this->config = $config;
         $this->tableName = $tableName;
     }
@@ -100,8 +98,6 @@ abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
         return $id;
     }
 
-
-
     protected function getDocumentBody(array $result): array
     {
         $body = [];
@@ -119,7 +115,7 @@ abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
         }
         $type = $this->tableName;
         if (isset($body['type'])) {
-            $type .= '/' . $body['type'];
+            $type .= '-' . $body['type'];
         }
         $body['type'] = $type;
         return $body;
@@ -135,7 +131,7 @@ abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
         $actionName = $uriBuilderConfig['actionName'] ?? '';
         $argumentName = $uriBuilderConfig['argumentName'] ?? '';
         $entityUid = $uriBuilderConfig['uid'] ?? '';
-        $uriBuilder = $this->objectManager->get(CommandUriBuilder::class);
+        $uriBuilder = GeneralUtility::makeInstance(Container::class)->getInstance(CommandUriBuilder::class);
 
         return $uriBuilder
             ->reset()

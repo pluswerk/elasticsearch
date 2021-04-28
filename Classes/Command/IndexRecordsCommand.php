@@ -10,11 +10,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class IndexRecordsCommand extends Command
+class IndexRecordsCommand extends AbstractCommand
 {
     protected OutputInterface $output;
 
-    public function configure(): void
+    protected function configure(): void
     {
         $this->setDescription('Indexes records based on your yaml file.');
     }
@@ -29,6 +29,7 @@ class IndexRecordsCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        parent::execute($input, $output);
         $this->output = $output;
 
         $helperUtility = GeneralUtility::makeInstance(HelperUtility::class);

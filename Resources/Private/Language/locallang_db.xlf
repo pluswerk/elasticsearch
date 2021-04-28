@@ -13,7 +13,7 @@
         <source>replace with all alternatives</source>
       </trans-unit>
       <trans-unit id="tx_elasticsearch_domain_model_synonym.description.self">
-        <source>If active, replaces all "Terms" selected with the "Synonym". Deativated handles them equally. If not sure, leave deactivated.</source>
+        <source>If active, replaces all "Terms" selected with the "Synonym". That means three Terms "apple pear raspberry" with synonym "fruit" would lead into searching for "pear" just finds content with "fruit" (For the given "filter", other fields may contain the pear as usual). Deativated handles them equally finding everything which contains eigher one of "apple bear raspberry" or even "fuit". If not sure, leave deactivated.</source>
       </trans-unit>
 
       <trans-unit id="tx_elasticsearch_domain_model_synonym.filters">

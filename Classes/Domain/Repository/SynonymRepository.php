@@ -21,6 +21,7 @@ class SynonymRepository extends Repository
         parent::__construct($objectManager);
         $defaultQuerySettings->setRespectStoragePage(false);
         $defaultQuerySettings->setRespectSysLanguage(false);
+        $defaultQuerySettings->setLanguageOverlayMode(false);
         $this->defaultQuerySettings = $defaultQuerySettings;
     }
 

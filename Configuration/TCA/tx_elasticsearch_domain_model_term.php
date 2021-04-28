@@ -13,6 +13,7 @@ return [
         'transOrigPointerField' => 'l10n_parent',
         'transOrigDiffSourceField' => 'l10n_diffsource',
         'enablecolumns' => [
+            'disabled' => 'hidden',
         ],
         'searchFields' => 'title',
         'typeicon_classes' => [
@@ -27,12 +28,11 @@ return [
                 --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:language,
                     --palette--;;language,
                 --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access,
-                    hidden,--palette--;;timeRestriction
+                    hidden
             ',
         ],
     ],
     'palettes' => [
-        'timeRestriction' => ['showitem' => 'starttime, endtime'],
         'language' => ['showitem' => 'sys_language_uid, l10n_parent'],
     ],
     'columns' => [
@@ -46,6 +46,13 @@ return [
             'label' => 'crdate',
             'config' => [
                 'type' => 'passthrough',
+            ],
+        ],
+        'hidden' => [
+            'exclude' => 1,
+            'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.hidden',
+            'config' => [
+                'type' => 'check',
             ],
         ],
         'sys_language_uid' => [

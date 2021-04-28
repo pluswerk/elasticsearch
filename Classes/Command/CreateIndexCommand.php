@@ -7,21 +7,20 @@ namespace Pluswerk\Elasticsearch\Command;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class CreateIndexCommand extends Command
+class CreateIndexCommand extends AbstractCommand
 {
     /**
      * @var OutputInterface
      */
-    protected $output;
+    protected OutputInterface $output;
 
-    public function configure(): void
+    protected function configure(): void
     {
         $this->setDescription('Deletes old index and creates a new one.');
     }
@@ -35,6 +34,7 @@ class CreateIndexCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        parent::execute($input, $output);
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
 

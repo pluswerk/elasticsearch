@@ -14,6 +14,9 @@ use TYPO3\CMS\Core\Exception\SiteNotFoundException;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Site\SiteFinder;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Object\ObjectManager;
+use TYPO3\CMS\Extbase\Persistence\Generic\Session;
 
 class SynonymExporter
 {
@@ -27,6 +30,9 @@ class SynonymExporter
         $this->synonymRepository = $synonymRepository;
         $this->output = $output;
         $this->siteFinder = $siteFinder;
+        /** @var Session $session */
+        $session = GeneralUtility::makeInstance(ObjectManager::class)->get(Session::class);
+        $session->destroy();
     }
 
     public function all(): void
@@ -50,6 +56,12 @@ class SynonymExporter
             return;
         }
 
+        $terms = $synonym->getTerms();
+        if (!$terms->count()) {
+            $this->output->writeln('Ignoring synonym without terms: ' . $synonym);
+            return;
+        }
+
         try {
             $site = $this->siteFinder->getSiteByPageId($synonym->getPid());
         } catch (SiteNotFoundException $e) {
@@ -67,7 +79,7 @@ class SynonymExporter
         }
 
         $termString = '';
-        foreach ($synonym->getTerms() as $term) {
+        foreach ($terms as $term) {
             $termString .= ($termString ? ', ' : '') . $term->getTitle();
         }
 
@@ -77,7 +89,6 @@ class SynonymExporter
             $termString .= ($termString ? ', ' : '') . $synonym->getTitle();
             $synonymString = $termString . ' => ' . $termString;
         }
-
 
         foreach ($filters as $filter) {
             $this->cache[$key]['synonyms'][$filter][] = $synonymString;
