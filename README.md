@@ -387,3 +387,13 @@ ignore the expand parameter in the schema.
 
 ["sea biscuit, sea biscit => seabiscuit" vs "sea biscuit, sea biscit, seabiscuit"](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html)
 
+#Dumb session
+This holds the workaround to do multiple languages in one CLI command. The identitymap has to forget about the previous language's object so the datamapper works correctly with new relations
+
+
+    Before: Model A (en), Submodel B (en)
+    ... both translated
+    Model A (de), Submodel B (en)
+    
+    Now correctly
+    Model A (de), Submodel B (de)
