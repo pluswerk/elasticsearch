@@ -6,7 +6,36 @@
       <trans-unit id="tx_elasticsearch_domain_model_synonym">
         <source>Synonym</source>
       </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.title">
+        <source>Synonym</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self">
+        <source>replace with all alternatives</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.self">
+        <source>If active, replaces all "Terms" selected with the "Synonym". Deativated handles them equally. If not sure, leave deactivated.</source>
+      </trans-unit>
+
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.filters">
+        <source>Which filters to affect?</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.filters">
+        <source>You might have multiple synonym filters (or even none) and want to select the ones that will receive this synonym.</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.terms">
+        <source>Terms</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self.enabled">
+        <source>Enabled: The "=>" operator is used</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self.disabled">
+        <source>Disabled: The terms are handled equally</source>
+      </trans-unit>
       <trans-unit id="tx_elasticsearch_domain_model_term">
+        <source>Term</source>
+      </trans-unit>
+
+      <trans-unit id="tx_elasticsearch_domain_model_term.title">
         <source>Term</source>
       </trans-unit>
     </body>

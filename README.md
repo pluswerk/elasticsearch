@@ -371,9 +371,19 @@ services:
       - name: event.listener
         identifier: 'AUS\AusProject\EventListener\BuildClientEventListener'
         event: SFC\Staticfilecache\Event\BuildClientEvent
-
+```
 
 # Synonyms
-https://www.elastic.co/guide/en/elasticsearch/guide/1.x/synonyms-expand-or-contract.html#synonyms-expansion
+[indextime or searchtime?](https://www.elastic.co/guide/en/elasticsearch/guide/1.x/synonyms-expand-or-contract.html#synonyms-expansion)
 
-https://www.elastic.co/guide/en/elasticsearch/reference/current/search-analyzer.html
+[more about](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-analyzer.html)
+
+### The self-toggle
+Read more about the toggler, if you do not know what it does, leave it disabled to get mostly what you want.
+
+Explicit mappings match any token sequence on the LHS of "=>"
+and replace with all alternatives on the RHS.  These types of mappings
+ignore the expand parameter in the schema.
+
+["sea biscuit, sea biscit => seabiscuit" vs "sea biscuit, sea biscit, seabiscuit"](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html)
+

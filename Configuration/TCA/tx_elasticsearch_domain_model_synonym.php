@@ -3,31 +3,29 @@
 return [
     'ctrl' => [
         'title' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym',
-        'label' => 'uid',
+        'label' => 'title',
         'tstamp' => 'tstamp',
         'crdate' => 'crdate',
         'cruser_id' => 'cruser_id',
         'dividers2tabs' => true,
         'versioningWS' => false,
         'languageField' => 'sys_language_uid',
-        #'transOrigPointerField' => 'l10n_parent',
-        #'transOrigDiffSourceField' => 'l10n_diffsource',
-        #'delete' => 'deleted',
+        'transOrigPointerField' => 'l10n_parent',
+        'transOrigDiffSourceField' => 'l10n_diffsource',
         'enablecolumns' => [
-            #'disabled' => 'hidden',
-            #'starttime' => 'starttime',
-            #'endtime' => 'endtime',
         ],
-        #'searchFields' => 'title',
-        #'typeicon_classes' => [
-        #    'default' => 'mimetypes-x-sys_category',
-        #],
+        'searchFields' => 'title',
+        'typeicon_classes' => [
+            // TODO replace icon
+            // @see https://docs.typo3.org/m/typo3/reference-tca/master/en-us/Ctrl/Properties/TypeiconClasses.html
+            'default' => 'mimetypes-x-sys_category',
+        ],
     ],
     'types' => [
         '1' => [
             'showitem' => '
                 --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:general,
-                    title, parent, terms, self,
+                    title, filters, parent, terms, self,
                 --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:language,
                     --palette--;;language,
                 --div--;LLL:EXT:core/Resources/Private/Language/Form/locallang_tabs.xlf:access,
@@ -78,79 +76,53 @@ return [
                 'items' => [
                     ['', 0],
                 ],
-                'foreign_table' => 'tx_veccategory_domain_model_file_language',
-                'foreign_table_where' => 'AND tx_veccategory_domain_model_file_language.pid=###CURRENT_PID### AND tx_veccategory_domain_model_file_language.sys_language_uid IN (-1,0)',
+                'foreign_table' => 'tx_elasticsearch_domain_model_synonym',
+                'foreign_table_where' => 'AND tx_elasticsearch_domain_model_synonym.pid=###CURRENT_PID### AND tx_elasticsearch_domain_model_synonym.sys_language_uid IN (-1,0)',
                 'default' => 0,
             ],
         ],
-        /*
         'l10n_diffsource' => [
             'config' => [
                 'type' => 'passthrough',
                 'default' => '',
             ],
         ],
-        'hidden' => [
-            'exclude' => true,
-            'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.enabled',
-            'config' => [
-                'type' => 'check',
-                'renderType' => 'checkboxToggle',
-                'items' => [
-                    [
-                        0 => '',
-                        1 => '',
-                        'invertStateDisplay' => true,
-                    ],
-                ],
-            ],
-        ],
-        'starttime' => [
-            'exclude' => true,
-            'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.starttime',
-            'config' => [
-                'type' => 'input',
-                'renderType' => 'inputDateTime',
-                'eval' => 'datetime,int',
-                'default' => 0,
-                'behaviour' => [
-                    'allowLanguageSynchronization' => true,
-                ],
-            ],
-        ],
-        'endtime' => [
-            'exclude' => true,
-            'label' => 'LLL:EXT:core/Resources/Private/Language/locallang_general.xlf:LGL.endtime',
-            'config' => [
-                'type' => 'input',
-                'renderType' => 'inputDateTime',
-                'eval' => 'datetime,int',
-                'default' => 0,
-                'range' => [
-                    'upper' => mktime(0, 0, 0, 1, 1, 2038),
-                ],
-                'behaviour' => [
-                    'allowLanguageSynchronization' => true,
-                ],
-            ],
-        ],*/
         'self' => [
-            'label' => 'todo: sich selbst',
+            'label' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.self',
+            'description' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.description.self',
             'config' => [
                 'type' => 'check',
                 'renderType' => 'checkboxLabeledToggle',
+                'items' => [
+                    [
+                        0 => 0,
+                        1 => 1,
+                        'labelChecked' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.self.enabled',
+                        'labelUnchecked' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.self.disabled',
+                    ]
+                ],
             ],
         ],
         'title' => [
-            'label' => 'todo dies hier hat folgende synonyme (ws)',
+            'label' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.title',
             'config' => [
                 'type' => 'input',
                 'width' => 200,
                 'eval' => 'trim,required',
             ],
         ],
+        'filters' => [
+            'exclude' => 1,
+            'label' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.filters',
+            'description' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.description.filters',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectSingleBox',
+                'itemsProcFunc' => \Pluswerk\Elasticsearch\Provider\ConfigurationProvider::class . '->getSynonymFilters',
+            ],
+        ],
         'terms' => [
-            'label' => 'TODO terms label, trenner definieren (ws)',
+            'label' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.terms',
             'config' => [
                 'type' => 'select',
                 'renderType' => 'selectMultipleSideBySide',
@@ -172,6 +144,6 @@ return [
                     ],
                 ],
             ],
-        ]
+        ],
     ],
 ];

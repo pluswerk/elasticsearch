@@ -12,7 +12,6 @@ use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
-use TYPO3\CMS\Extbase\Utility\DebuggerUtility;
 
 class ElasticConfig
 {
