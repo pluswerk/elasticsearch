@@ -50,7 +50,7 @@ class HelperUtility implements LoggerAwareInterface
      */
     public function indexRecordsByConfiguration(ElasticConfig $config): void
     {
-        $this->purgeOldAndRestrictedRecords($config);
+        //$this->purgeOldAndRestrictedRecords($config);
         foreach ($config->getIndexableTables() as $tableName) {
             $this->indexRecordsByConfigurationAndTableName($config, $tableName);
         }
@@ -58,9 +58,10 @@ class HelperUtility implements LoggerAwareInterface
 
     /**
      * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
+     * @param string $type
      * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
-    protected function purgeOldAndRestrictedRecords(ElasticConfig $config): void
+    public function purge(ElasticConfig $config, string $type): void
     {
         $this->logger->notice('<info>Purging old elasticsearch data...</info>');
         $this->bulkDeletePages($config);
@@ -72,12 +73,8 @@ class HelperUtility implements LoggerAwareInterface
                 'index' => $config->getIndexName(),
                 'body' => [
                     'query' => [
-                        'bool' => [
-                            'must_not' => [
-                                'term' => [
-                                    'id' => 'pages',
-                                ],
-                            ],
+                        'match' => [
+                            'type' => $type
                         ],
                     ],
                 ],
@@ -89,6 +86,8 @@ class HelperUtility implements LoggerAwareInterface
     /**
      * @param \Pluswerk\Elasticsearch\Config\ElasticConfig $config
      * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @deprecated
+     * @todo revive with a clean command which checks if the elastic index is just up to date. eighter introduce version field and after indexing remove the previous versions for some tables, or like this, check the entries if they are still ok (pages are not indexed all together)
      */
     protected function bulkDeletePages(ElasticConfig $config): void
     {
