@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Pluswerk\Elasticsearch\Service;
+namespace Pluswerk\Elasticsearch\Indexer;
 
 use Exception;
-use Pluswerk\Elasticsearch\Indexer\AbstractIndexer;
 use Psr\Http\Message\UriInterface;
 use Psr\Log\LogLevel;
 

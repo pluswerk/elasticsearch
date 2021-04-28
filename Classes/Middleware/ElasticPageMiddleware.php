@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Pluswerk\Elasticsearch\Middleware;
 
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
-use Pluswerk\Elasticsearch\Service\PageIndexer;
+use Pluswerk\Elasticsearch\Indexer\PageIndexer;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
