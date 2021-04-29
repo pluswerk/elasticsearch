@@ -9,13 +9,15 @@
       <trans-unit id="tx_elasticsearch_domain_model_synonym.title">
         <source>Synonym</source>
       </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.title">
+        <source>A word that is to be taken into account if a term is queried. May be comma seperated.</source>
+      </trans-unit>
       <trans-unit id="tx_elasticsearch_domain_model_synonym.self">
         <source>replace with all alternatives</source>
       </trans-unit>
       <trans-unit id="tx_elasticsearch_domain_model_synonym.description.self">
         <source>If active, replaces all "Terms" selected with the "Synonym". That means three Terms "apple pear raspberry" with synonym "fruit" would lead into searching for "pear" just finds content with "fruit" (For the given "filter", other fields may contain the pear as usual). Deativated handles them equally finding everything which contains eigher one of "apple bear raspberry" or even "fuit". If not sure, leave deactivated.</source>
       </trans-unit>
-
       <trans-unit id="tx_elasticsearch_domain_model_synonym.filters">
         <source>Which filters to affect?</source>
       </trans-unit>
@@ -37,6 +39,9 @@
 
       <trans-unit id="tx_elasticsearch_domain_model_term.title">
         <source>Term</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_term.description.title">
+        <source>A word that is used by the synonym. May be comma seperated.</source>
       </trans-unit>
     </body>
   </file>

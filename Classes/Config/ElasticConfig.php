@@ -8,10 +8,12 @@ use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
-
 use Psr\Http\Message\ServerRequestInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
+use TYPO3\CMS\Extbase\Object\Container\Container;
 
 class ElasticConfig
 {
@@ -87,25 +89,6 @@ class ElasticConfig
         return $self;
     }
 
-    /**
-     * @return string
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
-     */
-    public function getIndexName(): string
-    {
-        $index = $this->siteLanguage->toArray()['elasticsearch']['index'] ?? '';
-        if (!$index) {
-            throw new InvalidConfigurationException(
-                'The site ' . $this->site->getIdentifier() . ' with language ' . $this->siteLanguage->getTitle() . ' has no index defined'
-            );
-        }
-
-        if (!isset($this->site->getConfiguration()['elasticsearch']['indices'][$index])) {
-            throw new InvalidConfigurationException('The sites index ' . $index . ' has no configuration counterpart in elasticsearch configuration');
-        }
-        return $index;
-    }
-
     public function getFieldMapping(): array
     {
         if (isset($this->site->getConfiguration()['elasticsearch']['mapping'])) {
@@ -130,6 +113,25 @@ class ElasticConfig
     {
         $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['mapping'] ?? [];
+    }
+
+    /**
+     * @return string
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function getIndexName(): string
+    {
+        $index = $this->siteLanguage->toArray()['elasticsearch']['index'] ?? '';
+        if (!$index) {
+            throw new InvalidConfigurationException(
+                'The site ' . $this->site->getIdentifier() . ' with language ' . $this->siteLanguage->getTitle() . ' has no index defined'
+            );
+        }
+
+        if (!isset($this->site->getConfiguration()['elasticsearch']['indices'][$index])) {
+            throw new InvalidConfigurationException('The sites index ' . $index . ' has no configuration counterpart in elasticsearch configuration');
+        }
+        return $index;
     }
 
     /**
@@ -221,5 +223,27 @@ class ElasticConfig
     {
         $index = $this->getIndexName();
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['uriBuilderConfig'] ?? [];
+    }
+
+    public function getPublicUrl(): string
+    {
+        $el = getenv('PUBLIC_HOST_ELASTIC');
+        if ($el) {
+            $el = (string)$el;
+            if (strrpos($el, '/') !== strlen($el) - 1) {
+                $el .= '/';
+            }
+            $el .= $this->getIndexName() . '/_search';
+            return $el;
+        }
+
+        /** @var UriBuilder $uriBuilder */
+        $uriBuilder = GeneralUtility::makeInstance(Container::class)->getInstance(UriBuilder::class);
+
+        return $uriBuilder
+            ->reset()
+            ->setCreateAbsoluteUri(false)
+            ->setTargetPageType(1619681085)
+            ->build();
     }
 }

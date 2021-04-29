@@ -94,6 +94,7 @@ return [
         ],
         'title' => [
             'label' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_term.title',
+            'description' => 'LLL:EXT:elasticsearch/Resources/Private/Language/locallang_db.xlf:tx_elasticsearch_domain_model_synonym.description.title',
             'config' => [
                 'type' => 'input',
                 'width' => 200,

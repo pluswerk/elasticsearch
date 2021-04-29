@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pluswerk\Elasticsearch\Hook;
 
 use TYPO3\CMS\Core\DataHandling\DataHandler;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 class TceMainHook
 {
@@ -14,13 +15,10 @@ class TceMainHook
     }
 
     /**
-     * TODO check the synonym to have just valid chars
-     *
      * @param $incomingFieldArray
      * @param $table
      * @param $id
      * @param \TYPO3\CMS\Core\DataHandling\DataHandler $dataHandler
-     * @noinspection PhpUnused
      * @codingStandardsIgnoreStart
      */
     public function processDatamap_preProcessFieldArray(&$incomingFieldArray, $table, $id, DataHandler $dataHandler): void
@@ -30,6 +28,8 @@ class TceMainHook
             return;
         }
 
-        $incomingFieldArray['A'] = 'B';
+        if (isset($incomingFieldArray['title'])) {
+            $incomingFieldArray['title'] = implode(', ', array_unique(array_filter(GeneralUtility::trimExplode(',', $incomingFieldArray['title']))));
+        }
     }
 }
