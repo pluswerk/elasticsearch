@@ -44,8 +44,31 @@ class ConfigurationProvider
 
         $items = array_keys($filters);
 
+        $fieldMapping = $config->getFieldMapping();
+        $analyzers = $config->getAnalyzers();
         foreach ($items as $item) {
-            $configuration['items'][] = [$item, $item];
+            $fields = [];
+            foreach ($analyzers as $analyzerName => $analyzer) {
+                if (!isset($analyzer['filter'])) {
+                    continue;
+                }
+                if (in_array($item, $analyzer['filter'], true)) {
+                    foreach ($fieldMapping as $fieldName => $fieldMap) {
+                        if ((isset($fieldMap['analyzer']) && $fieldMap['analyzer'] === $analyzerName)
+                            || (isset($fieldMap['search_analyzer']) && $fieldMap['search_analyzer'] === $analyzerName)) {
+                            $fields[] = $fieldName;
+                        }
+                    }
+                }
+            }
+
+            $label = implode(', ', array_unique($fields));
+            if ($label) {
+                $label .= ' ';
+            }
+            $label .= '(' . $item . ')';
+
+            $configuration['items'][] = [$label, $item];
         }
     }
 }
