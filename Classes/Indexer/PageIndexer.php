@@ -23,7 +23,10 @@ class PageIndexer extends AbstractIndexer
         return 'pages:' . $identifier;
     }
 
-    public function removeContentById(string $id)
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
+    public function removeContentById(string $id): void
     {
         $this->config->getClient()->delete([
             'id'=> $id,
@@ -31,6 +34,9 @@ class PageIndexer extends AbstractIndexer
         ]);
     }
 
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     */
     public function indexContent(array $page, UriInterface $url): void
     {
         $page['url'] = $url->getPath();
@@ -41,8 +47,9 @@ class PageIndexer extends AbstractIndexer
         if (!isset($pagesMapping['type'])) {
             $pagesMapping['type'] = 'type';
         }
+        $indexBody = [];
         foreach ($pagesMapping as $elasticField => $typoField) {
-            $indexBody[$elasticField] = $page[$typoField] ?? '';
+            $indexBody[$elasticField] = $page[$typoField] ?? null;
         }
 
         $indexBody['id'] = $this->generateIdByDocument((string)$indexBody['id']);

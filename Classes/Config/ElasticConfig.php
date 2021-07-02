@@ -216,6 +216,11 @@ class ElasticConfig
         return $this->site;
     }
 
+    public function getSiteLanguage(): SiteLanguage
+    {
+        return $this->siteLanguage;
+    }
+
     /**
      * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
