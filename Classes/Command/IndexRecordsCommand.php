@@ -100,7 +100,7 @@ class IndexRecordsCommand extends Command
         $conditions[] = $queryBuilder->expr()->eq('hidden', 1);
         $conditions[] = $queryBuilder->expr()->eq('no_index', 1);
         $conditions[] = $queryBuilder->expr()->eq('no_follow', 1);
-        $conditions[] = $queryBuilder->expr()->neq('fe_group', '""');
+        $conditions[] = $queryBuilder->expr()->neq('fe_group', $queryBuilder->createNamedParameter(''));
 
         $pageResult = $queryBuilder->select('uid')
             ->from('pages')
