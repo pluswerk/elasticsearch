@@ -25,11 +25,6 @@ abstract class AbstractElasticIndexer implements ElasticIndexable
     protected $tableName = '';
 
     /**
-     * @var ObjectManager
-     */
-    protected $objectManager;
-
-    /**
      * @var FrontendSimulationService
      */
     protected $frontendSimulationService;
@@ -44,8 +39,7 @@ abstract class AbstractElasticIndexer implements ElasticIndexable
         $this->output = $output;
         $this->config = $config;
         $this->tableName = $tableName;
-        $this->objectManager = GeneralUtility::makeInstance(ObjectManager::class);
-        $this->frontendSimulationService = $this->objectManager->get(FrontendSimulationService::class);
+        $this->frontendSimulationService = GeneralUtility::makeInstance(FrontendSimulationService::class);
         $this->frontendSimulationService->initTSFE($this->config->getSite()->getRootPageId());
     }
 
@@ -56,7 +50,7 @@ abstract class AbstractElasticIndexer implements ElasticIndexable
             ->select('*')
             ->from($this->tableName)
             ->execute()
-            ->fetchAll();
+            ->fetchAllAssociative();
     }
 
     protected function getDocumentBody(array $result): array
@@ -81,7 +75,7 @@ abstract class AbstractElasticIndexer implements ElasticIndexable
         $actionName = $uriBuilderConfig['actionName'] ?? '';
         $argumentName = $uriBuilderConfig['argumentName'] ?? '';
         $entityUid = $uriBuilderConfig['uid'] ?? '';
-        $uriBuilder = $this->objectManager->get(CommandUriBuilder::class);
+        $uriBuilder = GeneralUtility::makeInstance(CommandUriBuilder::class);
 
         return $uriBuilder
             ->reset()
