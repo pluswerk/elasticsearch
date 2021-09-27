@@ -400,13 +400,13 @@ This holds the workaround to do multiple languages in one CLI command. The ident
 
 # where to search?
 
-You can set the PUBLIC_HOST_ELASTIC environment Variable, it will be available in fluid {{data.elasticsearch.url}} (if you want an other variable, change in TypoScript).
+You can set the PUBLIC_HOST_ELASTIC_WEB environment Variable, it will be available in fluid {{data.elasticsearch.url}} (if you want an other variable, change in TypoScript).
  - fast featurerich full access
  - perfect for public data
  - perfect for use in vue
  - send your search objects in the request body
 
-If you do not set PUBLIC_HOST_ELASTIC environment Variablethe URI to the search Controller is built.
+If you do not set PUBLIC_HOST_ELASTIC_WEB environment Variablethe URI to the search Controller is built.
  - fully bootstrapped TYPO3 elastic proxy
  - you can add more complex queries with usergroups taken into account
  - simply use the q Parameter "?q=fox" to search for fox

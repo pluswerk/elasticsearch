@@ -230,16 +230,20 @@ class ElasticConfig
         return $this->site->getConfiguration()['elasticsearch']['indices'][$index]['tables'][$tableName]['uriBuilderConfig'] ?? [];
     }
 
+    public function getPublicHost(): ?string
+    {
+        $val = getenv('PUBLIC_HOST_ELASTIC_CMS');
+        return $val ? (string)$val : null;
+    }
+
     public function getPublicUrl(): string
     {
-        $el = getenv('PUBLIC_HOST_ELASTIC');
-        if ($el) {
-            $el = (string)$el;
-            if (strrpos($el, '/') !== strlen($el) - 1) {
-                $el .= '/';
+        $publicHost = $this->getPublicHost();
+        if ($publicHost) {
+            if (strrpos($publicHost, '/') !== strlen($publicHost) - 1) {
+                $publicHost .= '/';
             }
-            $el .= $this->getIndexName() . '/_search';
-            return $el;
+            return $publicHost . $this->getIndexName() . '/_search';
         }
 
         /** @var UriBuilder $uriBuilder */
