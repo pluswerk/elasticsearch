@@ -31,7 +31,7 @@ class HelperUtility implements LoggerAwareInterface
         /** @var Site $site */
         foreach ($siteFinder->getAllSites(false) as $site) {
             if (isset($site->getConfiguration()['elasticsearch'])) {
-                $configsBySite = ElasticConfig::bySite($site);
+                $configsBySite = $this->getElasticSiteConfig($site);
                 foreach ($configsBySite as $elasticConfig) {
                     try {
                         $configs[$elasticConfig->getIndexName()] = $elasticConfig;
@@ -42,6 +42,13 @@ class HelperUtility implements LoggerAwareInterface
             }
         }
         return $configs;
+    }
+
+    /**
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     */
+    protected function getElasticSiteConfig(Site $site): array {
+        return ElasticConfig::bySite($site);
     }
 
     /**
