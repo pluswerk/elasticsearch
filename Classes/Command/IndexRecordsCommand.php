@@ -34,9 +34,11 @@ class IndexRecordsCommand extends AbstractCommand
 
         $helperUtility = GeneralUtility::makeInstance(HelperUtility::class);
 
-        $configurations = $helperUtility->getAllConfigurations();
-        foreach ($configurations as $configuration) {
-            $helperUtility->indexRecordsByConfiguration($configuration);
+        $configurationsByIndex = $helperUtility->getAllConfigurations();
+        foreach ($configurationsByIndex as $configurations) {
+            foreach ($configurations as $configuration) {
+                $helperUtility->indexRecordsByConfiguration($configuration);
+            }
         }
 
         return 0;
