@@ -89,6 +89,7 @@ class CreateIndexCommand extends AbstractCommand
                 'index' => $index,
                 'body' => [
                     'settings' => [
+                        'max_ngram_diff' => 10,
                         'number_of_shards' => 1,
                         'number_of_replicas' => 1,
                         'analysis' => [
