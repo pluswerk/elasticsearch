@@ -29,7 +29,7 @@ class IndexRecordsCommand extends Command
         $this->setDescription('Indexes records based on your yaml file.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
@@ -41,6 +41,8 @@ class IndexRecordsCommand extends Command
                 $this->indexRecordsForSite($config);
             }
         }
+
+        return Command::SUCCESS;
     }
 
     private function debug($var, int $depth = 4): void
@@ -98,7 +100,7 @@ class IndexRecordsCommand extends Command
         $conditions[] = $queryBuilder->expr()->eq('hidden', 1);
         $conditions[] = $queryBuilder->expr()->eq('no_index', 1);
         $conditions[] = $queryBuilder->expr()->eq('no_follow', 1);
-        $conditions[] = $queryBuilder->expr()->neq('fe_group', '""');
+        $conditions[] = $queryBuilder->expr()->neq('fe_group', $queryBuilder->createNamedParameter(''));
 
         $pageResult = $queryBuilder->select('uid')
             ->from('pages')

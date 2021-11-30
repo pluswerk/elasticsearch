@@ -26,7 +26,7 @@ class CreateIndexCommand extends Command
         $this->setDescription('Deletes old index and creates a new one.');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
@@ -36,6 +36,8 @@ class CreateIndexCommand extends Command
                 $this->createIndexForSite($site);
             }
         }
+
+        return Command::SUCCESS;
     }
 
     private function createIndexForSite(Site $site): void
