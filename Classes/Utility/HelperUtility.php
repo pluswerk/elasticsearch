@@ -22,7 +22,7 @@ class HelperUtility implements LoggerAwareInterface
 
     /**
      * @return array<ElasticConfig>
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException|\Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     public function getAllConfigurations(): array
     {
@@ -33,7 +33,6 @@ class HelperUtility implements LoggerAwareInterface
             if (isset($site->getConfiguration()['elasticsearch'])) {
                 $configsBySite = $this->getElasticSiteConfig($site);
 
-                /** @var ElasticConfig $elasticConfig */
                 foreach ($configsBySite as $elasticConfig) {
                     if (!isset($configs[$elasticConfig->getIndexName()])) {
                         $configs[$elasticConfig->getIndexName()] = [];

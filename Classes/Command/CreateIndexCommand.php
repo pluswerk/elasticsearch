@@ -6,7 +6,6 @@ namespace Pluswerk\Elasticsearch\Command;
 
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
-use Pluswerk\Elasticsearch\Config\RemoteElasticConfig;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,12 +21,9 @@ class CreateIndexCommand extends AbstractCommand
      */
     protected OutputInterface $output;
 
-    private bool $remoteOptionValue = false;
-
     protected function configure(): void
     {
-        $this->setDescription('Deletes old index and creates a new one.')
-            ->addOption('remote', 'r', InputArgument::OPTIONAL, 'CREATE INDEX on remote SYSTEM instead OF cms', false);
+        $this->setDescription('Deletes old index and creates a new one.');
     }
 
     /**
@@ -40,7 +36,6 @@ class CreateIndexCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         parent::execute($input, $output);
-        $this->remoteOptionValue = (bool)$input->getOption('remote');
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
 
@@ -58,11 +53,7 @@ class CreateIndexCommand extends AbstractCommand
      */
     protected function createIndexForSite(Site $site): void
     {
-        if ($this->remoteOptionValue) {
-            $elasticConfigs = RemoteElasticConfig::bySite($site);
-        } else {
-            $elasticConfigs = ElasticConfig::bySite($site);
-        }
+        $elasticConfigs = ElasticConfig::bySite($site);
         if (empty($elasticConfigs)) {
             $this->output->writeln('Site ' . $site->getIdentifier() . ' has no elasticsearch configuration');
             return;

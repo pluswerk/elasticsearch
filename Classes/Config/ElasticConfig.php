@@ -232,7 +232,7 @@ class ElasticConfig
 
     public function getPublicHost(): ?string
     {
-        $val = getenv('PUBLIC_HOST_ELASTIC_CMS');
+        $val = getenv('PUBLIC_HOST_ELASTIC');
         return $val ? (string)$val : null;
     }
 
