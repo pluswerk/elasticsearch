@@ -16,3 +16,21 @@ services:
     public: true
     arguments:
       $output: '@Symfony\Component\Console\Output\ConsoleOutput'
+
+  Pluswerk\Elasticsearch\Command\CreateIndexCommand:
+    tags:
+      - name: 'console.command'
+        command: 'elasticsearch:create-indices'
+        schedulable: true
+
+  Pluswerk\Elasticsearch\Command\IndexRecordsCommand:
+    tags:
+      - name: 'console.command'
+        command: 'elasticsearch:index-records'
+        schedulable: true
+
+  Pluswerk\Elasticsearch\Command\ExportSynonymsCommand:
+    tags:
+      - name: 'console.command'
+        command: 'elasticsearch:export-synonyms'
+        schedulable: true

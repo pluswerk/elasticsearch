@@ -155,14 +155,16 @@ class HelperUtility implements LoggerAwareInterface
     public function indexRecordsByConfigurationAndTableName(ElasticConfig $config, string $tableName): void
     {
         $indexingClass = $config->getIndexingClassForTable($tableName);
-        if ($indexingClass !== '') {
-            $indexer = GeneralUtility::makeInstance($indexingClass, $config, $tableName);
-            if (!($indexer instanceof AbstractIndexer)) {
-                throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractIndexer::class . '".');
-            }
-
-            $indexer->process();
-            $this->logger->notice(sprintf('<info>Finished indexing entities of table %s.</info>', $tableName));
+        if ($indexingClass === '') {
+            return;
         }
+
+        $indexer = GeneralUtility::makeInstance($indexingClass, $config, $tableName);
+        if (!($indexer instanceof AbstractIndexer)) {
+            throw new InvalidIndexerException('The indexer has to be an instance of "' . AbstractIndexer::class . '".');
+        }
+
+        $indexer->process();
+        $this->logger->notice(sprintf('<info>Finished indexing entities of table %s.</info>', $tableName));
     }
 }

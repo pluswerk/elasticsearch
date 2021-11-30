@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Command;
 
+use Exception;
 use Pluswerk\Elasticsearch\Utility\HelperUtility;
-use Symfony\Component\Console\Command\Command;
+use Psr\Log\LoggerAwareInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-class IndexRecordsCommand extends AbstractCommand
+class IndexRecordsCommand extends AbstractCommand implements LoggerAwareInterface
 {
+    use LoggerAwareTrait;
+
     protected OutputInterface $output;
 
     protected function configure(): void
@@ -37,7 +42,11 @@ class IndexRecordsCommand extends AbstractCommand
         $configurationsByIndex = $helperUtility->getAllConfigurations();
         foreach ($configurationsByIndex as $configurations) {
             foreach ($configurations as $configuration) {
-                $helperUtility->indexRecordsByConfiguration($configuration);
+                try {
+                    $helperUtility->indexRecordsByConfiguration($configuration);
+                } catch (Exception $exception) {
+                    $this->logger->critical($exception->getMessage());
+                }
             }
         }
 
