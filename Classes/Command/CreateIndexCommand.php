@@ -7,6 +7,7 @@ namespace Pluswerk\Elasticsearch\Command;
 use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -26,13 +27,6 @@ class CreateIndexCommand extends AbstractCommand
         $this->setDescription('Deletes old index and creates a new one.');
     }
 
-    /**
-     * @param \Symfony\Component\Console\Input\InputInterface $input
-     * @param \Symfony\Component\Console\Output\OutputInterface $output
-     * @return int
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         parent::execute($input, $output);
@@ -44,7 +38,7 @@ class CreateIndexCommand extends AbstractCommand
             $this->createIndexForSite($site);
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     /**
