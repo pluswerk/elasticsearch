@@ -21,7 +21,7 @@ class HelperUtility implements LoggerAwareInterface
     use LoggerAwareTrait;
 
     /**
-     * @return array<ElasticConfig>
+     * @return array<string, array<int, ElasticConfig>>
      * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException|\Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
     public function getAllConfigurations(): array
@@ -111,7 +111,7 @@ class HelperUtility implements LoggerAwareInterface
         $conditions[] = $queryBuilder->expr()->eq('hidden', 1);
         $conditions[] = $queryBuilder->expr()->eq('no_index', 1);
         $conditions[] = $queryBuilder->expr()->eq('no_follow', 1);
-        $conditions[] = $queryBuilder->expr()->neq('fe_group', '""');
+        $conditions[] = $queryBuilder->expr()->neq('fe_group', $queryBuilder->createNamedParameter(''));
 
         $pageResult = $queryBuilder->select('uid')
             ->from('pages')
