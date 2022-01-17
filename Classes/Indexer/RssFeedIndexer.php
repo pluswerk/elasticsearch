@@ -25,7 +25,7 @@ class RssFeedIndexer extends AbstractIndexer
 
         $mapping = $this->config->getFieldMappingForTable($this->tableName);
         $feeds = [];
-        foreach ($x->channel->item as $item) {
+        foreach ($x->item as $item) {
             $feed = [];
             foreach ($mapping as $elasticName => $rssName) {
                 $feed[$rssName] = (string)$item->{$rssName};
