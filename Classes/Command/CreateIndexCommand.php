@@ -78,6 +78,9 @@ class CreateIndexCommand extends AbstractCommand
                         'number_of_shards' => 1,
                         'number_of_replicas' => 1,
                         'analysis' => [
+                            'hunspell' => [
+                                'dictionary' => 'ignore_case'
+                            ],
                             'filter' => $config->getFilters(),
                             'analyzer' => $config->getAnalyzers(),
                         ],
