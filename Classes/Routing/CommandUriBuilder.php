@@ -68,16 +68,9 @@ class CommandUriBuilder extends UriBuilder
      * @see buildTypolinkConfiguration()
      * @internal only to be used within Extbase, not part of TYPO3 Core API.
      */
-    public function buildFrontendUri()
+    public function buildFrontendUri(): string
     {
-        $typolinkConfiguration = $this->buildTypolinkConfiguration();
-        if ($this->createAbsoluteUri === true) {
-            $typolinkConfiguration['forceAbsoluteUrl'] = true;
-            if ($this->absoluteUriScheme !== null) {
-                $typolinkConfiguration['forceAbsoluteUrl.']['scheme'] = $this->absoluteUriScheme;
-            }
-        }
-        $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
-        return $cObj->typoLink_URL($typolinkConfiguration);
+        $this->contentObject = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        return parent::buildFrontendUri();
     }
 }

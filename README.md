@@ -366,10 +366,10 @@ Witht he use of staticfilecache extension and their BoostQueue you can enable bo
 
 ```yaml
 services:
-  AUS\AusProject\EventListener\BuildClientEventListener:
+  Pluswerk\Elasticsearch\EventListener\BuildClientEventListener:
     tags:
       - name: event.listener
-        identifier: 'AUS\AusProject\EventListener\BuildClientEventListener'
+        identifier: 'Pluswerk\Elasticsearch\EventListener\BuildClientEventListener'
         event: SFC\Staticfilecache\Event\BuildClientEvent
 ```
 
