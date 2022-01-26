@@ -5,6 +5,9 @@ Highly and easy configurable elasticsearch adapter for TYPO3.
 ## Prerequisites
 * Elasticsearch 7
 
+## Known Problems
+The use of staticfilecache with threads enabled and Elasticsearch->ProgressBodyMiddleware is not yet possible.
+
 ## Recommendations
 Usage of [EXT:staticfilecache](https://github.com/lochmueller/staticfilecache) is strongly recommended as the page indexing happens on the fly when the middleware is being executed.
 No code execution -> no performance issues.
