@@ -13,8 +13,8 @@ use Pluswerk\Elasticsearch\Transformer\RequestTransformer;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
-use TYPO3\CMS\Frontend\Page\PageRepository;
 
 class ProgressBodyMiddleware
 {
@@ -84,7 +84,12 @@ class ProgressBodyMiddleware
         $response->then(
             function (ResponseInterface $response) use ($pageUid, $serverRequest) {
                 $code = $response->getStatusCode();
-                $page = GeneralUtility::makeInstance(PageRepository::class)->getPage($pageUid, true);
+                if (version_compare(VersionNumberUtility::getNumericTypo3Version(), '11.0.0') === -1) {
+                    $page = GeneralUtility::makeInstance(\TYPO3\CMS\Frontend\Page\PageRepository::class)->getPage($pageUid, true);
+                } else {
+                    $page = GeneralUtility::makeInstance(\TYPO3\CMS\Core\Domain\Repository\PageRepository::class)->getPage($pageUid, true);
+                }
+
                 $remove = true;
 
                 if ($code === 200) {

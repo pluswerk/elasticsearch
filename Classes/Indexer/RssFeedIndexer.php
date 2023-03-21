@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Indexer;
 
+use Pluswerk\Elasticsearch\Exception\MappingException;
 use Pluswerk\Elasticsearch\Exception\ParseException;
 
 class RssFeedIndexer extends AbstractIndexer
@@ -28,6 +29,9 @@ class RssFeedIndexer extends AbstractIndexer
         foreach ($x->item as $item) {
             $feed = [];
             foreach ($mapping as $elasticName => $rssName) {
+                if (!isset($item->{$rssName})) {
+                    throw new MappingException('Could not map field ' . $rssName);
+                }
                 $feed[$rssName] = (string)$item->{$rssName};
             }
 

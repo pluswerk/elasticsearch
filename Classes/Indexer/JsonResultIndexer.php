@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Pluswerk\Elasticsearch\Indexer;
 
+use Pluswerk\Elasticsearch\Exception\MappingException;
 use Pluswerk\Elasticsearch\Exception\ParseException;
 
 class JsonResultIndexer extends AbstractIndexer
@@ -13,6 +14,7 @@ class JsonResultIndexer extends AbstractIndexer
      * @throws \Pluswerk\Elasticsearch\Exception\ParseException
      * @throws \Pluswerk\Elasticsearch\Exception\TransportException
      * @throws \JsonException
+     * @throws MappingException
      */
     protected function getContent(): array
     {
@@ -31,6 +33,9 @@ class JsonResultIndexer extends AbstractIndexer
                     $key = $elasticName;
                 } else {
                     $key = $rssName;
+                }
+                if (!isset($item->{$rssName})) {
+                    throw new MappingException('Could not map field ' . $key);
                 }
                 $feed[$key] = (string)$item->{$rssName};
             }

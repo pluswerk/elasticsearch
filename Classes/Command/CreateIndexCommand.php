@@ -8,8 +8,8 @@ use Elasticsearch\Common\Exceptions\Missing404Exception;
 use Pluswerk\Elasticsearch\Config\ElasticConfig;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Site\Entity\Site;
 use TYPO3\CMS\Core\Site\SiteFinder;
@@ -24,7 +24,8 @@ class CreateIndexCommand extends AbstractCommand
 
     protected function configure(): void
     {
-        $this->setDescription('Deletes old index and creates a new one.');
+        $this->setDescription('Manages mapping and indices.');
+        $this->addOption('update', 'u', InputOption::VALUE_OPTIONAL, 'Update the mapping instead of creating new indices (only for compatible conversions)', false);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -32,20 +33,19 @@ class CreateIndexCommand extends AbstractCommand
         parent::execute($input, $output);
         $siteFinder = GeneralUtility::makeInstance(SiteFinder::class);
         $this->output = $output;
-
+        $updateMapping = $input->hasOption('update') ? filter_var($input->getOption('update') ?? true, FILTER_VALIDATE_BOOLEAN) : false;
         /** @var Site $site */
         foreach ($siteFinder->getAllSites(false) as $site) {
-            $this->createIndexForSite($site);
+            $this->createIndexForSite($site, $updateMapping);
         }
 
         return Command::SUCCESS;
     }
 
     /**
-     * @param \TYPO3\CMS\Core\Site\Entity\Site $site
      * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException|\Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
      */
-    protected function createIndexForSite(Site $site): void
+    protected function createIndexForSite(Site $site, bool $updateMapping): void
     {
         $elasticConfigs = ElasticConfig::bySite($site);
         if (empty($elasticConfigs)) {
@@ -53,7 +53,11 @@ class CreateIndexCommand extends AbstractCommand
             return;
         }
 
-        $this->output->writeln(sprintf('<comment>Creating new elasticsearch index for %s</comment>', $site->getIdentifier()));
+        if ($updateMapping) {
+            $this->output->writeln(sprintf('<comment>Updating mapping for %s</comment>', $site->getIdentifier()));
+        } else {
+            $this->output->writeln(sprintf('<comment>Creating new elasticsearch index for %s</comment>', $site->getIdentifier()));
+        }
 
         foreach ($elasticConfigs as $config) {
             $client = $config->getClient();
@@ -62,12 +66,6 @@ class CreateIndexCommand extends AbstractCommand
             } catch (InvalidConfigurationException $e) {
                 $this->output->writeln('<warning>' . $e->getMessage() . '</warning>');
                 continue;
-            }
-            $this->output->writeln('<comment>Deleting old index..</comment>');
-            try {
-                $client->indices()->delete(['index' => $index]);
-            } catch (Missing404Exception $e) {
-                $this->output->writeln(sprintf('<comment>No index "%s" exists yet, creating new now..</comment>', $index));
             }
 
             $params = [
@@ -91,8 +89,23 @@ class CreateIndexCommand extends AbstractCommand
                 ],
             ];
 
-            $client->indices()->create($params);
-            $this->output->writeln(sprintf('<info>A new index "%s" has been created for %s.</info>', $index, $site->getIdentifier()));
+            try {
+                if ($updateMapping) {
+                    $client->indices()->putMapping([
+                        'index' => $index,
+                        'body' => [
+                            'properties' => $config->getFieldMapping(),
+                        ]
+                    ]);
+                    $this->output->writeln(sprintf('<info>Updated mapping "%s" for %s.</info>', $index, $site->getIdentifier()));
+                } else {
+                    $client->indices()->delete(['index' => $index]);
+                    $client->indices()->create($params);
+                    $this->output->writeln(sprintf('<info>A new index "%s" has been created for %s.</info>', $index, $site->getIdentifier()));
+                }
+            } catch (Missing404Exception $e) {
+                $this->output->writeln(sprintf('<comment>No index "%s" exists yet, creating new.</comment>', $index));
+            }
         }
     }
 }
