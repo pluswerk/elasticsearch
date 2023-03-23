@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+  <file source-language="en" target-language="de" datatype="plaintext" original="messages" product-name="elasticsearch">
+    <header/>
+    <body>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym">
+        <target>Synonym</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.title">
+        <target>Synonym</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.title">
+        <target>Ein Wort das verwendet wird, wenn ein Begriff aus der Begriffsliste verwendet wird. Möglicherweise kommaseperiert.</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self">
+        <target>ersetze mit allen Alternativen</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.self">
+        <target>Wenn aktiv, werden die gewählten "Begriffe" mit dem "Synonym" ersetzt. Das heißt, die drei Begriffe "apple pear raspberry" mit dem Synonym "fruit" würden dazu führen, dass die Suche nach "pear" nur Inhalt "fruit" findet. (Für den ausgewählten "filter", andere Felder könnten aufgrund von "pear" wie gewohnt im Ergebnis auftauchen). Deaktiviert behandelt sie gleichwertig und findet alles was eins von  "apple bear raspberry fruit" enthält. Wenn unsicher, deaktivieren.</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.filters">
+        <target>Welche filters werden beeinflusst?</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.filters">
+        <target>Sie könnten mehrere synonymfilter (oder garkeinen) haben und hier auswählen, wo das Synonym Bedeutung hat.</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.terms">
+        <target>Begriffe</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self.enabled">
+        <target>Atkiv: Der "=>" Operator wird verwendet</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self.disabled">
+        <target>Deaktiviert: Die Begriffe werden gleich behandelt</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_term">
+        <target>Begriff</target>
+      </trans-unit>
+
+      <trans-unit id="tx_elasticsearch_domain_model_term.title">
+        <target>Begriff</target>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_term.description.title">
+        <target>Ein Begriff welcher von einem Synonym verwendet wird. Kann kommaseperiert sein.</target>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

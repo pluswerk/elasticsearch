@@ -9,7 +9,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
-final class CommandUriBuilder extends UriBuilder
+class CommandUriBuilder extends UriBuilder
 {
     /**
      * Creates an URI used for linking to an Extbase action.
@@ -23,7 +23,7 @@ final class CommandUriBuilder extends UriBuilder
      * @return string the rendered URI
      * @see build()
      */
-    public function uriFor($actionName = null, $controllerArguments = [], $controllerName = null, $extensionName = null, $pluginName = null)
+    public function uriFor($actionName = null, $controllerArguments = [], $controllerName = null, $extensionName = null, $pluginName = null): string
     {
         if ($actionName !== null) {
             $controllerArguments['action'] = $actionName;
@@ -68,16 +68,9 @@ final class CommandUriBuilder extends UriBuilder
      * @see buildTypolinkConfiguration()
      * @internal only to be used within Extbase, not part of TYPO3 Core API.
      */
-    public function buildFrontendUri()
+    public function buildFrontendUri(): string
     {
-        $typolinkConfiguration = $this->buildTypolinkConfiguration();
-        if ($this->createAbsoluteUri === true) {
-            $typolinkConfiguration['forceAbsoluteUrl'] = true;
-            if ($this->absoluteUriScheme !== null) {
-                $typolinkConfiguration['forceAbsoluteUrl.']['scheme'] = $this->absoluteUriScheme;
-            }
-        }
-        $cObj = GeneralUtility::makeInstance(ContentObjectRenderer::class);
-        return $cObj->typoLink_URL($typolinkConfiguration);
+        $this->contentObject = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        return parent::buildFrontendUri();
     }
 }

@@ -5,3 +5,39 @@ plugin.tx_elasticsearch {
     layoutRootPaths.0 = EXT:elasticsearch/Resources/Private/Layouts/
   }
 }
+
+page.10.dataProcessing {
+  1619681084 = Pluswerk\Elasticsearch\DataProcessor\ElasticsearchDataProcessor
+  1619681084 {
+    as = elasticsearch
+  }
+}
+
+tx_elasticsearch_search = PAGE
+tx_elasticsearch_search {
+  typeNum = 1619681085
+
+  config {
+    disableAllHeaderCode = 1
+    admPanel = 0
+    removeDefaultJS = 1
+    removeDefaultCss = 1
+    removePageCss = 1
+    xhtml_cleaning = 0
+    additionalHeaders {
+      10.header = Content-Type:application/json;charset=utf-8
+      20.header = X-Robots-Tag:noindex
+    }
+  }
+
+  10 = USER_INT
+  10 {
+    userFunc = TYPO3\CMS\Extbase\Core\Bootstrap->run
+    pluginName = Elasticsearch
+    extensionName = Elasticsearch
+    controller = Search
+    vendorName = Pluswerk
+    action = search
+  }
+}
+

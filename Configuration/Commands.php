@@ -6,5 +6,8 @@ return [
     ],
     'elasticsearch:index-records' => [
         'class' => \Pluswerk\Elasticsearch\Command\IndexRecordsCommand::class
+    ],
+    'elasticsearch:export-synonyms' => [
+        'class' => \Pluswerk\Elasticsearch\Command\ExportSynonymsCommand::class
     ]
 ];
