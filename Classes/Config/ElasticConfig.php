@@ -9,7 +9,7 @@ use Elasticsearch\ClientBuilder;
 use Pluswerk\Elasticsearch\Exception\ClientNotAvailableException;
 use Pluswerk\Elasticsearch\Exception\InvalidConfigurationException;
 use Psr\Http\Message\ServerRequestInterface;
-use TYPO3\CMS\Core\Site\Entity\Site;
+use TYPO3\CMS\Core\Site\Entity\SiteInterface;
 use TYPO3\CMS\Core\Site\Entity\SiteLanguage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
@@ -17,7 +17,7 @@ use TYPO3\CMS\Extbase\Object\Container\Container;
 
 class ElasticConfig
 {
-    protected Site $site;
+    protected SiteInterface $site;
     protected Client $client;
     protected SiteLanguage $siteLanguage;
 
@@ -26,7 +26,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws ClientNotAvailableException
      */
     public static function byRequest(ServerRequestInterface $request): ElasticConfig
     {
@@ -38,15 +38,9 @@ class ElasticConfig
         return $self;
     }
 
-    /**
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
-     */
     protected function buildClient(): void
     {
         $client = ClientBuilder::create()->setHosts($this->getServerConfig())->build();
-        if (null === $client) {
-            throw new ClientNotAvailableException('Could not create ElasticConfig');
-        }
         $this->client = $client;
     }
 
@@ -59,11 +53,10 @@ class ElasticConfig
     }
 
     /**
-     * @param \TYPO3\CMS\Core\Site\Entity\Site $site
-     * @return array<\Pluswerk\Elasticsearch\Config\ElasticConfig>
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @return array<ElasticConfig>
+     * @throws ClientNotAvailableException
      */
-    public static function bySite(Site $site): array
+    public static function bySite(SiteInterface $site): array
     {
         $siteLanguages = $site->getLanguages();
         $elasticConfigurations = [];
@@ -78,9 +71,9 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
+     * @throws ClientNotAvailableException
      */
-    public static function bySiteAndLanguage(Site $site, SiteLanguage $siteLanguage): ElasticConfig
+    public static function bySiteAndLanguage(SiteInterface $site, SiteLanguage $siteLanguage): ElasticConfig
     {
         $self = new static();
         $self->site = $site;
@@ -107,7 +100,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getFieldMappingForTable(string $tableName): array
     {
@@ -117,7 +110,7 @@ class ElasticConfig
 
     /**
      * @return string
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getIndexName(): string
     {
@@ -135,7 +128,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getConfigForTable(string $tableName): array
     {
@@ -144,7 +137,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getAnalyzers(): array
     {
@@ -153,7 +146,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getFilters(): array
     {
@@ -167,7 +160,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function isMiddlewareProcessingAllowed(): bool
     {
@@ -178,7 +171,7 @@ class ElasticConfig
 
     /**
      * @return array<int, string>
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getIndexableTables(): array
     {
@@ -198,7 +191,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getIndexingClassForTable(string $tableName): string
     {
@@ -211,7 +204,7 @@ class ElasticConfig
         return $this->site->getConfiguration()['elasticsearch']['searchFields'] ?? [];
     }
 
-    public function getSite(): Site
+    public function getSite(): SiteInterface
     {
         return $this->site;
     }
@@ -222,7 +215,7 @@ class ElasticConfig
     }
 
     /**
-     * @throws \Pluswerk\Elasticsearch\Exception\InvalidConfigurationException
+     * @throws InvalidConfigurationException
      */
     public function getUriBuilderConfig(string $tableName): array
     {
