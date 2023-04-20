@@ -32,7 +32,7 @@ class CommandUriBuilder extends UriBuilder
 
         // from version 11
         if ($typo3VersionNumber > 10999999) {
-            parent::uriFor($actionName, $controllerArguments, $controllerName, $extensionName, $pluginName);
+            return parent::uriFor($actionName, $controllerArguments, $controllerName, $extensionName, $pluginName);
         }
 
         if ($actionName !== null) {
