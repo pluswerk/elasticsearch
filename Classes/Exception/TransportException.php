@@ -8,5 +8,4 @@ use TYPO3\CMS\Core\Exception;
 
 class TransportException extends Exception
 {
-
 }

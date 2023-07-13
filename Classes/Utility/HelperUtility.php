@@ -53,7 +53,8 @@ class HelperUtility implements LoggerAwareInterface
      * @throws \Pluswerk\Elasticsearch\Exception\ClientNotAvailableException
      * @return ElasticConfig[]
      */
-    protected function getElasticSiteConfig(Site $site): array {
+    protected function getElasticSiteConfig(Site $site): array
+    {
         return ElasticConfig::bySite($site);
     }
 

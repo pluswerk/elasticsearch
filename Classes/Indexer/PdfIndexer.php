@@ -27,7 +27,7 @@ class PdfIndexer extends AbstractIndexer
         foreach ($files as $file) {
             $fileContent = $this->getFileContent($file['href']);
             $content = $this->extractViaTika($fileContent);
-            $content['tika'] = trim(str_replace("\n", ' ',htmlspecialchars($content['tika'])));
+            $content['tika'] = trim(str_replace("\n", ' ', htmlspecialchars($content['tika'])));
 
             $id = $this->tableName . '/' . sha1($file['href']);
 
@@ -201,5 +201,4 @@ class PdfIndexer extends AbstractIndexer
         $this->content = $content;
         return $this;
     }
-
 }

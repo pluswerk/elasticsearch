@@ -1,19 +1,41 @@
 {
-  "name": "pluswerk/elasticsearch",
-  "type": "typo3-cms-extension",
-  "description": "Pluswerk: Elasticsearch adapter for TYPO3",
-  "homepage": "https://www.pluswerk.ag",
-  "license": "GPL-2.0-or-later",
-  "support": {
-    "source": "https://www.pluswerk.ag"
+  "name" : "pluswerk/elasticsearch",
+  "type" : "typo3-cms-extension",
+  "description" : "Pluswerk: Elasticsearch adapter for TYPO3",
+  "homepage" : "https://www.pluswerk.ag",
+  "license" : "GPL-2.0-or-later",
+  "support" : {
+    "source" : "https://www.pluswerk.ag"
   },
-  "autoload": {
-    "psr-4": {
-      "Pluswerk\\Elasticsearch\\": "Classes/"
+  "autoload" : {
+    "psr-4" : {
+      "Pluswerk\\Elasticsearch\\" : "Classes/"
     }
   },
-  "require": {
-    "typo3/cms-core": "^10.4 || ^11.5",
-    "elasticsearch/elasticsearch": "^7.12"
+  "require" : {
+    "typo3/cms-core" : "^10.4 || ^11.5",
+    "elasticsearch/elasticsearch" : "^7.12"
+  },
+  "require-dev" : {
+    "phpstan/extension-installer" : "^1.2",
+    "pluswerk/grumphp-config" : "^5.0",
+    "saschaegerer/phpstan-typo3" : "^1.8"
+  },
+  "config": {
+    "allow-plugins": {
+      "typo3/cms-composer-installers": true,
+      "typo3/class-alias-loader": true,
+      "phpstan/extension-installer": true,
+      "phpro/grumphp": true,
+      "pluswerk/grumphp-config": true
+    }
+  },
+  "extra": {
+    "pluswerk/grumphp-config": {
+      "auto-setting": true
+    },
+    "grumphp": {
+      "config-default-path": "vendor/pluswerk/grumphp-config/grumphp.yml"
+    }
   }
 }

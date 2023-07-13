@@ -6,6 +6,7 @@ namespace Pluswerk\Elasticsearch\Routing;
 
 use TYPO3\CMS\Core\Utility\ArrayUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Extbase\Mvc\Web\Routing\UriBuilder;
 use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
 
@@ -25,6 +26,15 @@ class CommandUriBuilder extends UriBuilder
      */
     public function uriFor($actionName = null, $controllerArguments = [], $controllerName = null, $extensionName = null, $pluginName = null): string
     {
+        $typo3VersionNumber = VersionNumberUtility::convertVersionNumberToInteger(
+            VersionNumberUtility::getNumericTypo3Version()
+        );
+
+        // from version 11
+        if ($typo3VersionNumber > 10999999) {
+            return parent::uriFor($actionName, $controllerArguments, $controllerName, $extensionName, $pluginName);
+        }
+
         if ($actionName !== null) {
             $controllerArguments['action'] = $actionName;
         }

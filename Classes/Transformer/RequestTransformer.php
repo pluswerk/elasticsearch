@@ -55,7 +55,7 @@ class RequestTransformer
         /** @var SiteRouteResult $routeResult */
         $routeResult = $matcher->matchRequest($serverRequest);
 
-        $router = GeneralUtility::makeInstance(PageRouter::class,$routeResult->getSite());
+        $router = GeneralUtility::makeInstance(PageRouter::class, $routeResult->getSite());
         $siteRouteResult = GeneralUtility::makeInstance(SiteRouteResult::class, $serverRequest->getUri(), $routeResult->getSite(), $routeResult->getLanguage(), $routeResult->getTail());
 
         /** @var PageArguments $pageArguments */

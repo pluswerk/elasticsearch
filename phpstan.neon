@@ -1,0 +1,8 @@
+includes:
+  - phpstan-baseline.neon
+
+parameters:
+  reportUnmatchedIgnoredErrors: false
+  level: 8
+  paths:
+    - Classes/
