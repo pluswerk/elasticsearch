@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+  <file source-language="en" datatype="plaintext" original="messages" product-name="elasticsearch">
+    <header/>
+    <body>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym">
+        <source>Synonym</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.title">
+        <source>Synonym</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.title">
+        <source>A word that is to be taken into account if a term is queried. May be comma seperated.</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self">
+        <source>replace with all alternatives</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.self">
+        <source>If active, replaces all "Terms" selected with the "Synonym". That means three Terms "apple pear raspberry" with synonym "fruit" would lead into searching for "pear" just finds content with "fruit" (For the given "filter", other fields may contain the pear as usual). Deativated handles them equally finding everything which contains eigher one of "apple bear raspberry" or even "fuit". If not sure, leave deactivated.</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.filters">
+        <source>Which filters to affect?</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.description.filters">
+        <source>You might have multiple synonym filters (or even none) and want to select the ones that will receive this synonym.</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.terms">
+        <source>Terms</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self.enabled">
+        <source>Enabled: The "=>" operator is used</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_synonym.self.disabled">
+        <source>Disabled: The terms are handled equally</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_term">
+        <source>Term</source>
+      </trans-unit>
+
+      <trans-unit id="tx_elasticsearch_domain_model_term.title">
+        <source>Term</source>
+      </trans-unit>
+      <trans-unit id="tx_elasticsearch_domain_model_term.description.title">
+        <source>A word that is used by the synonym. May be comma seperated.</source>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

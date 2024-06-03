@@ -2,7 +2,6 @@
 
 defined('TYPO3_MODE') or die('Access denied.');
 
-/** @var string $_EXTKEY */
 call_user_func(function () {
     \TYPO3\CMS\Extbase\Utility\ExtensionUtility::configurePlugin(
         'Pluswerk.Elasticsearch',
@@ -15,4 +14,5 @@ call_user_func(function () {
             'Search' => 'search',
         ]
     );
-}, $_EXTKEY);
+    \Pluswerk\Elasticsearch\Hook\TceMainHook::register();
+});

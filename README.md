@@ -5,13 +5,16 @@ Highly and easy configurable elasticsearch adapter for TYPO3.
 ## Prerequisites
 * Elasticsearch 7
 
+## Known Problems
+The use of staticfilecache with threads enabled and Elasticsearch->ProgressBodyMiddleware is not yet possible.
+
 ## Recommendations
 Usage of [EXT:staticfilecache](https://github.com/lochmueller/staticfilecache) is strongly recommended as the page indexing happens on the fly when the middleware is being executed.
 No code execution -> no performance issues.
 Usage of [typo3_console](https://github.com/TYPO3-Console/TYPO3-Console) is strongly recommended for executing commands easily.
 
 ## Quickstart
-1. Add two comments to your default fluid layout to mark the indexable contents: "\<!--TYPO3SEARCH_begin-->" and "\<!--TYPO3SEARCH_end-->".
+1. Add two comments to your default fluid layout to mark the indexable contents: "\<!--TYPO3SEARCH_begin-->" and "\<!--TYPO3SEARCH_end-->". (Add those sections mutliple times if you wish to.)
 2. Add the yaml configuration to your sites.
 3. Run the command "elasticsearch:create-indices" to create the needed structure inside your elasticsearch
 4. Run the command "elasticsearch:index-records" to index your records.
@@ -59,10 +62,20 @@ base: 'https://www.foo.com/'
 
 # Elasticsearch configuration
 elasticsearch:
-  index: typo3
   server:
     host: elastic.foo.com
     port: 9200
+  indices:
+    # define a default
+    german: &default
+      index: german
+    # copy the default to english
+    english:
+      << : *default
+      index: english
+    # create something new
+    products:
+      index: products
 ```
 
 ### Elasticsearch fields
@@ -100,21 +113,36 @@ elasticsearch:
         type: text
         store: true
         analyzer: html_analyzer
-```
+``` 
+
+
+Of course the site/language combination needs to know it's index name to use
+
+```yaml
+languages:
+  -
+    title: 'German website'
+    elasticsearch:
+      index: de-de
+``` 
+
 
 ## Analyzers
 You can specify and use your own analyzers as well. Here is an example of an analyzer with stripped html-chars and a lowercase filter:
 ```yaml
 elasticsearch:
-  # see https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-custom-analyzer.html
-  analyzers:
-    html_analyzer:
-      type: custom
-      tokenizer: standard
-      char_filter:
-        - html_strip
-      filter:
-        - lowercase
+  indices:
+    german:
+      
+      # see https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-custom-analyzer.html
+      analyzers:
+        html_analyzer:
+          type: custom
+          tokenizer: standard
+          char_filter:
+            - html_strip
+          filter:
+            - lowercase
 ``` 
 
 ## Indexing pages
@@ -124,15 +152,18 @@ All indices inside of "tables" are table names of your TYPO3 project (pages, tt_
 
 ```yaml
 elasticsearch:
-  usePageMiddleware: true
-  tables:
-    pages:
-      mapping:
-        # content and url are predefined variables in php
-        # elasticValue: typo3Value
-        content: content
-        url: url
-        title: title
+  indices:
+    german:
+      usePageMiddleware: true
+      tables:
+        pages:
+          mapping:
+            
+            # content and url are predefined variables in php
+            # elasticValue: typo3Value
+            content: content
+            url: url
+            title: title
 ```
 
 Pages are getting indexed on uncached page-load via middleware. This means after changing a page the changes are synchronized immediately to elasticsearch.
@@ -162,24 +193,29 @@ It is possible to simply index all tables you have inside of your database. Take
 
 ```yaml
 elasticsearch:
-  tables:
-    tx_myextension_domain_model_table:
-      indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
-      uriBuilderConfig:
-        extensionName: MyExtension
-        pluginName: Extension
-        controllerName: Extension
-        actionName: detail
-        # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
-        argumentName: table
-        # detail page uid
-        pageUid: 123
-      mapping:
-        content: text
-        teaser: teaser
-        title: title
-        # you need to provide "url" in order to automatically generate urls
-        url: placeholder
+  indices:
+    german:
+      tables:
+        tx_myextension_domain_model_table:
+          indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
+          uriBuilderConfig:
+            extensionName: MyExtension
+            pluginName: Extension
+            controllerName: Extension
+            actionName: detail
+            
+            # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
+            argumentName: table
+            
+            # detail page uid
+            pageUid: 123
+          mapping:
+            content: text
+            teaser: teaser
+            title: title
+            
+            # you need to provide "url" in order to automatically generate urls
+            url: placeholder
 
 ```
 
@@ -194,81 +230,103 @@ You can also add urls to your entries. The field "url" is predestined and should
 
 ```yaml
 elasticsearch:
-  index: typo3
   server:
-    host: elastic
-  searchFields:
-    - escaped_content
-    - title
-  analyzers:
-    html_analyzer:
-      type: custom
-      tokenizer: standard
-      char_filter:
-        - html_strip
-      filter:
-        - lowercase
-
-  # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html
+    - '%env(HOST_ELASTIC)%'
+  # mapping schema for all indices
   mapping:
     -
       name: title
-
-      # https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
       parameters:
         type: keyword
+        index: true
         store: true
     -
-      name: teaser
+      name: type
+      parameters:
+        type: keyword
+        index: true
+        store: true
+    -
+      name: contentExact
       parameters:
         type: text
-        index: false
         store: true
+        index: false
+        copy_to: content
     -
       name: content
       parameters:
         type: text
         store: true
-        copy_to: escaped_content
-    -
-      name: escaped_content
-      parameters:
-        type: text
-        store: true
+        index: true
         analyzer: html_analyzer
     -
       name: url
       parameters:
-        type: text
+        type: keyword
+        index: false
         store: true
-    -
-      name: image
-      parameters:
-        type: text
-        store: true
-  tables:
-    pages:
-      mapping:
-        # content and url are predefined variables in php if you use the middleware processing
-        content: content
-        url: url
-        title: title
-    tx_myextension_domain_model_table:
-      indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
-      uriBuilderConfig:
-        extensionName: MyExtension
-        pluginName: Extension
-        controllerName: Extension
-        actionName: detail
-        # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
-        argumentName: table
-        # detail page uid
-        pageUid: 123
-      mapping:
-        content: text
-        teaser: teaser
-        title: title
-        url: url
+
+  indices:
+    german: &default
+      index: german
+      searchFields:
+        - content
+        - title
+      analyzers:
+        html_analyzer:
+          type: custom
+          tokenizer: standard
+          char_filter:
+            - html_strip
+          filter:
+            - lowercase
+      usePageMiddleware: true
+      tables:
+        pages:
+          mapping:
+            # content and url are predefined variables in php
+            # elasticValue: typo3Value
+            content: content
+            url: url
+            title: title
+        rss-feed-news:
+          indexClass: Pluswerk\Elasticsearch\Indexer\RssFeedIndexer
+          config:
+            uri: <RSS FEED URI>
+          mapping:
+            title: title
+            publicationDate: pubDate
+            url: link
+            contentExact: description
+            type: type
+            uid: uid
+    english:
+      << : *default
+      index: english
+      tables:
+        pages:
+          mapping:
+            content: content
+            url: url
+            title: title
+        tx_myextension_domain_model_table:
+          indexClass: Pluswerk\Elasticsearch\Indexer\GenericTableIndexer
+          uriBuilderConfig:
+            extensionName: MyExtension
+            pluginName: Extension
+            controllerName: Extension
+            actionName: detail
+            # argument which name gets resolved, or the entity name - e.g. it is a event detail page, so most likely the argument is "event"
+            argumentName: table
+            # detail page uid
+            pageUid: 123
+          mapping:
+            content: text
+            teaser: teaser
+            title: title
+            url: url
+
 ```
 
 ### Example of embedding an ajax search endpoint
@@ -297,3 +355,61 @@ elasticSearch {
   }
 }
 ```
+
+# UID and Type
+The fields are used internally and will transform to
+
+ - uid = tablename + uid 
+   - is removed after used as _id (concatenated tablename+uid).
+ - type = tablename + type
+   - if empty type = tablename 
+
+# Symbiosis
+Witht he use of staticfilecache extension and their BoostQueue you can enable boost-time site indexing with a Listener
+
+```yaml
+services:
+  Pluswerk\Elasticsearch\EventListener\BuildClientEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'Pluswerk\Elasticsearch\EventListener\BuildClientEventListener'
+        event: SFC\Staticfilecache\Event\BuildClientEvent
+```
+
+# Synonyms
+[indextime or searchtime?](https://www.elastic.co/guide/en/elasticsearch/guide/1.x/synonyms-expand-or-contract.html#synonyms-expansion)
+
+[more about](https://www.elastic.co/guide/en/elasticsearch/reference/current/search-analyzer.html)
+
+### The self-toggle
+Read more about the toggler, if you do not know what it does, leave it disabled to get mostly what you want.
+
+Explicit mappings match any token sequence on the LHS of "=>"
+and replace with all alternatives on the RHS.  These types of mappings
+ignore the expand parameter in the schema.
+
+["sea biscuit, sea biscit => seabiscuit" vs "sea biscuit, sea biscit, seabiscuit"](https://www.elastic.co/guide/en/elasticsearch/reference/current/analysis-synonym-tokenfilter.html)
+
+#Dumb session
+This holds the workaround to do multiple languages in one CLI command. The identitymap has to forget about the previous language's object so the datamapper works correctly with new relations
+
+
+    Before: Model A (en), Submodel B (en)
+    ... both translated
+    Model A (de), Submodel B (en)
+    
+    Now correctly
+    Model A (de), Submodel B (de)
+
+# where to search?
+
+You can set the PUBLIC_HOST_ELASTIC environment Variable, it will be available in fluid {{data.elasticsearch.url}} (if you want another variable, change in TypoScript).
+ - fast featurerich full access
+ - perfect for public data
+ - perfect for use in vue
+ - send your search objects in the request body
+
+If you do not set PUBLIC_HOST_ELASTIC environment Variablethe URI to the search Controller is built.
+ - fully bootstrapped TYPO3 elastic proxy
+ - you can add more complex queries with usergroups taken into account
+ - simply use the q Parameter "?q=fox" to search for fox

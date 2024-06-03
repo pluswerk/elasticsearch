@@ -6,6 +6,6 @@ namespace Pluswerk\Elasticsearch\Exception;
 
 use TYPO3\CMS\Core\Exception;
 
-class InvalidIndexerException extends Exception
+class MappingException extends Exception
 {
 }

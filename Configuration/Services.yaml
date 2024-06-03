@@ -1,0 +1,36 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  Symfony\Component\Console\Output\ConsoleOutput:
+    public: true
+
+  Pluswerk\Elasticsearch\Domain\Repository\:
+    resource: '../Classes/Domain/Repository/*'
+    public: true
+
+  Pluswerk\Elasticsearch\Exporter\:
+    resource: '../Classes/Exporter/*'
+    public: true
+    arguments:
+      $output: '@Symfony\Component\Console\Output\ConsoleOutput'
+
+  Pluswerk\Elasticsearch\Command\CreateIndexCommand:
+    tags:
+      - name: 'console.command'
+        command: 'elasticsearch:create-indices'
+        schedulable: true
+
+  Pluswerk\Elasticsearch\Command\IndexRecordsCommand:
+    tags:
+      - name: 'console.command'
+        command: 'elasticsearch:index-records'
+        schedulable: true
+
+  Pluswerk\Elasticsearch\Command\ExportSynonymsCommand:
+    tags:
+      - name: 'console.command'
+        command: 'elasticsearch:export-synonyms'
+        schedulable: true
