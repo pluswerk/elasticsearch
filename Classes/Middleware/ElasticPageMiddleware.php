@@ -34,12 +34,11 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
         $response = $handler->handle($request);
 
         $elasticConfig = ElasticConfig::byRequest($request);
-        if (null === $elasticConfig || !$elasticConfig->isMiddlewareProcessingAllowed()) {
+        if (!$elasticConfig->isMiddlewareProcessingAllowed()) {
             return $response;
         }
 
         if ($this->isPageIndexable($request, $response)) {
-
             $this->pageIndexer = GeneralUtility::makeInstance(PageIndexer::class, $elasticConfig, 'pages');
             $html = $this->pageIndexer->getIndexableContent($this->getTypoScriptFrontendController()->content);
 
@@ -59,15 +58,11 @@ class ElasticPageMiddleware implements MiddlewareInterface, LoggerAwareInterface
     {
         $tsfe = $this->getTypoScriptFrontendController();
         if (
-            !($response instanceof Response)
-            || !($tsfe instanceof TypoScriptFrontendController)
+            !($tsfe instanceof TypoScriptFrontendController)
             || $tsfe->page['no_index'] === 1
             || $tsfe->page['no_follow'] === 1
             || $tsfe->page['hidden'] === 1
-            || !empty(
-                $tsfe->page['fe_group']
-                || !$tsfe->isOutputting()
-            )
+            || !empty($tsfe->page['fe_group'])
         ) {
             return false;
         }

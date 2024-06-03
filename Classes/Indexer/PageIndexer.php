@@ -29,7 +29,7 @@ class PageIndexer extends AbstractIndexer
     public function removeContentById(string $id): void
     {
         $this->config->getClient()->delete([
-            'id'=> $id,
+            'id' => $id,
             'index' => $this->config->getIndexName()
         ]);
     }

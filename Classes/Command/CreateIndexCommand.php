@@ -104,7 +104,8 @@ class CreateIndexCommand extends AbstractCommand
                     $this->output->writeln(sprintf('<info>A new index "%s" has been created for %s.</info>', $index, $site->getIdentifier()));
                 }
             } catch (Missing404Exception $e) {
-                $this->output->writeln(sprintf('<comment>No index "%s" exists yet, creating new.</comment>', $index));
+                $client->indices()->create($params);
+                $this->output->writeln(sprintf('<comment>No index "%s" exists yet, created new.</comment>', $index));
             }
         }
     }

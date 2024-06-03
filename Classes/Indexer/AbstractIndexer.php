@@ -107,7 +107,7 @@ abstract class AbstractIndexer implements ElasticIndexable, LoggerAwareInterface
             if (isset($result[$typoField])) {
                 $body[$elasticField] = $result[$typoField];
             } else {
-                $this->logger->notice('<warning>Could not find field '.$typoField.' to map</warning>');
+                $this->logger->notice('<warning>Could not find field ' . $typoField . ' to map</warning>');
             }
         }
         if (isset($body['uid'])) {

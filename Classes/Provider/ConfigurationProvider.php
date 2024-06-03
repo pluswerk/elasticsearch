@@ -54,8 +54,10 @@ class ConfigurationProvider
                 }
                 if (in_array($item, $analyzer['filter'], true)) {
                     foreach ($fieldMapping as $fieldName => $fieldMap) {
-                        if ((isset($fieldMap['analyzer']) && $fieldMap['analyzer'] === $analyzerName)
-                            || (isset($fieldMap['search_analyzer']) && $fieldMap['search_analyzer'] === $analyzerName)) {
+                        if (
+                            (isset($fieldMap['analyzer']) && $fieldMap['analyzer'] === $analyzerName)
+                            || (isset($fieldMap['search_analyzer']) && $fieldMap['search_analyzer'] === $analyzerName)
+                        ) {
                             $fields[] = $fieldName;
                         }
                     }

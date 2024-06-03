@@ -124,10 +124,10 @@ class SynonymExporter
                 $ctrl = ['index' => $config->getIndexName(),];
                 $filters = [];
                 foreach ($configAndSynonyms['synonyms'] as $filter => $list) {
-                $filters[$filter] = [
+                    $filters[$filter] = [
                     'type' => 'synonym',
                     'synonyms' => $list,
-                ];
+                    ];
                 }
                 $params = [
                     'index' => $config->getIndexName(),
